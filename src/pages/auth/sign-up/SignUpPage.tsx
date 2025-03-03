@@ -1,5 +1,6 @@
 import type { ChangeEvent } from "react";
 import React, { useState } from "react";
+import { useDispatch } from "react-redux";
 import logo from "../../../assets/logo.png";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -9,6 +10,7 @@ import LabeledInput from "../../../components/labeled-input/LabeledInput";
 import Button from "../../../components/button/Button";
 import { ButtonType } from "../../../components/button/StyledButton";
 import { StyledH3 } from "../../../components/common/text";
+import { setUser } from "../../../redux/user";
 
 interface SignUpData {
   name: string;
@@ -17,25 +19,48 @@ interface SignUpData {
   password: string;
   confirmPassword: string;
 }
+
 const SignUpPage = () => {
   const [data, setData] = useState<Partial<SignUpData>>({});
-  const [error, setError] = useState(false);
-
+  const [error, setError] = useState<string | null>(null);
+  const dispatch = useDispatch();
   const httpRequestService = useHttpRequestService();
   const navigate = useNavigate();
   const { t } = useTranslation();
 
   const handleChange =
-    (prop: string) => (event: ChangeEvent<HTMLInputElement>) => {
+    (prop: keyof SignUpData) => (event: ChangeEvent<HTMLInputElement>) => {
       setData({ ...data, [prop]: event.target.value });
     };
-  const handleSubmit = async () => {
-    const { confirmPassword, ...requestData } = data;
-    httpRequestService
-      .signUp(requestData)
-      .then(() => navigate("/"))
-      .catch(() => setError(false));
-  };
+
+    const handleSubmit = async () => {
+      if (data.password !== data.confirmPassword) {
+        setError(t("error.password-mismatch"));
+        return;
+      }
+    
+      const { confirmPassword, ...requestData } = data;
+    
+      try {
+        console.log("📤 Enviando datos a /auth/signup:", requestData);
+        
+        const response = await httpRequestService.signUp(requestData);
+        
+        console.log("✅ Respuesta del servidor:", response);
+    
+        const user = await httpRequestService.me(); 
+        dispatch(setUser(user)); 
+        navigate("/");
+      } catch (error: any) {
+        console.error("❌ Error en el registro:", error.response?.data || error);
+        if (error.response?.data?.errors) {
+          console.error("🔍 Detalles del error:", error.response.data.errors);
+        }
+        setError(error.response?.data?.message || t("error.register-failed"));
+      }
+    };
+    
+    
 
   return (
     <AuthWrapper>
@@ -48,41 +73,42 @@ const SignUpPage = () => {
           <div className={"input-container"}>
             <LabeledInput
               required
-              placeholder={"Enter name..."}
+              placeholder={t("input-params.name")}
               title={t("input-params.name")}
-              error={error}
+              error={!!error}
               onChange={handleChange("name")}
             />
             <LabeledInput
               required
-              placeholder={"Enter username..."}
+              placeholder={t("input-params.username")}
               title={t("input-params.username")}
-              error={error}
+              error={!!error}
               onChange={handleChange("username")}
             />
             <LabeledInput
               required
-              placeholder={"Enter email..."}
+              placeholder={t("input-params.email")}
               title={t("input-params.email")}
-              error={error}
+              error={!!error}
               onChange={handleChange("email")}
             />
             <LabeledInput
               type="password"
               required
-              placeholder={"Enter password..."}
+              placeholder={t("input-params.password")}
               title={t("input-params.password")}
-              error={error}
+              error={!!error}
               onChange={handleChange("password")}
             />
             <LabeledInput
               type="password"
               required
-              placeholder={"Confirm password..."}
+              placeholder={t("input-params.confirm-password")}
               title={t("input-params.confirm-password")}
-              error={error}
+              error={!!error}
               onChange={handleChange("confirmPassword")}
             />
+            {error && <p className="error-message">{error}</p>}
           </div>
           <div style={{ display: "flex", flexDirection: "column" }}>
             <Button

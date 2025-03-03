@@ -14,6 +14,7 @@ const ProfileInfo = ({
   username,
   profilePicture,
 }: ProfileInfoContainerProps) => {
+  console.log("📌 Datos recibidos en ProfileInfo:", { name, username, profilePicture });  
   return (
     <StyledContainer gap={"32px"} flex={2} flexDirection={"row"}>
       <Avatar
@@ -30,4 +31,5 @@ const ProfileInfo = ({
     </StyledContainer>
   );
 };
+
 export default ProfileInfo;

@@ -3,7 +3,7 @@ import axios from "axios";
 import { S3Service } from "./S3Service";
 
 const url =
-  process.env.REACT_APP_API_URL || "https://twitter-ieea.onrender.com/api";
+  process.env.REACT_APP_API_URL || "http://localhost:8080/api";  //"https://twitter-ieea.onrender.com/api"
 
 const httpRequestService = {
   signUp: async (data: Partial<SingUpData>) => {
@@ -166,7 +166,7 @@ const httpRequestService = {
   },
 
   getProfile: async (id: string) => {
-    const res = await axios.get(`${url}/user/profile/${id}`, {
+    const res = await axios.get(`${url}/user/${id}`, {
       headers: {
         Authorization: localStorage.getItem("token"),
       },

@@ -94,28 +94,33 @@ const ProfilePage = () => {
   };
 
   const getProfileData = async () => {
+    console.log("🔍 Obteniendo perfil para ID:", id);
     service
-        .getProfile(id)
-        .then((res) => {
-          setProfile(res);
-          setFollowing(
-              res
-                  ? res?.followers.some((follower: User) => follower.id === user?.id)
-                  : false
-          );
-        })
-        .catch(() => {
-          service
-              .getProfileView(id)
-              .then((res) => {
-                setProfile(res);
-                setFollowing(false);
-              })
-              .catch((error2) => {
-                console.log(error2);
-              });
-        });
+      .getProfile(id)
+      .then((res) => {
+        console.log("✅ Perfil recibido:", res);
+        setProfile(res.user);
+        console.log("res.user a ver:", res.username);
+        setFollowing(
+          res?.followers?.some((follower: User) => follower.id === user?.id) || false
+        );
+      })
+      .catch(() => {
+        console.log("⚠️ No se pudo obtener getProfile, probando getProfileView...");
+        service
+          .getProfileView(id)
+          .then((res) => {
+            console.log("✅ Perfil en modo vista:", res);
+            setProfile(res);
+            setFollowing(false);
+          })
+          .catch((error2) => {
+            console.error("❌ Error obteniendo el perfil:", error2);
+          });
+      });
   };
+  
+  console.log("🔍 Estado actual de profile:", profile?.username);
 
   return (
       <>
@@ -137,7 +142,7 @@ const ProfilePage = () => {
                       flexDirection={"row"}
                   >
                     <ProfileInfo
-                        name={profile!.name!}
+                        name={profile!.name}
                         username={profile!.username}
                         profilePicture={profile!.profilePicture}
                     />

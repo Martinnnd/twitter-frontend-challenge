@@ -8,8 +8,15 @@ import { StyledH5 } from "../../components/common/text";
 import { StyledFeedContainer } from "../home-page/components/contentContainer/FeedContainer";
 import CommentFeed from "../../components/feed/CommentFeed";
 
-class PostPage extends Component {
-  constructor(props) {
+interface PostPageState{
+    postId: string
+    post?: any 
+}
+
+class PostPage extends Component<{}, PostPageState> {
+  private service: any
+
+  constructor(props: {}) {
     super(props);
 
     this.state = {
@@ -24,7 +31,7 @@ class PostPage extends Component {
     this.fetchPost();
   }
 
-  componentDidUpdate(prevProps, prevState) {
+  componentDidUpdate(prevProps: {}, prevState: PostPageState) {
     if (prevState.postId !== this.state.postId) {
       this.fetchPost();
     }
@@ -33,10 +40,10 @@ class PostPage extends Component {
   fetchPost() {
     this.service
       .getPostById(this.state.postId)
-      .then((res) => {
+      .then((res: any) => {
         this.setState({ post: res });
       })
-      .catch((e) => {
+      .catch((e: any) => {
         console.log(e);
       });
   }
