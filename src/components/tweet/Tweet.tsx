@@ -42,7 +42,7 @@ const Tweet = ({post}: TweetProps) => {
         (r) => r.type === type && r.userId === user?.id
     );
     if (reacted) {
-      await service.deleteReaction(reacted.id);
+      await service.deleteReaction(reacted.id, type);
     } else {
       await service.createReaction(actualPost.id, type);
     }

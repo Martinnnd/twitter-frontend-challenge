@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useHttpRequestService } from "../service/HttpRequestService";
 import { Author } from "../service";
+import { useQuery } from "@tanstack/react-query";
 
 interface UseGetRecommendationsProps {
   page: number;
