@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useRef, useState } from "react";
+import React, { ChangeEvent, FocusEventHandler, useRef, useState } from "react";
 import { StyledInputContainer } from "./InputContainer";
 import { StyledInputTitle } from "./InputTitle";
 import { StyledInputElement } from "./StyledInputElement";
@@ -10,6 +10,11 @@ interface InputWithLabelProps {
   required: boolean;
   error?: boolean;
   onChange?: (event: ChangeEvent<HTMLInputElement>) => void;
+  errorMessage?: string;
+  value?: string;
+  name?: string;
+  touched?: boolean;
+  onBlur: FocusEventHandler
 }
 
 const LabeledInput = ({
@@ -19,6 +24,11 @@ const LabeledInput = ({
   error,
   onChange,
   type = "text",
+  errorMessage,
+  value,
+  touched,
+  onBlur,
+  name,
 }: InputWithLabelProps) => {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [focus, setFocus] = useState(false);
@@ -49,6 +59,7 @@ const LabeledInput = ({
       </StyledInputTitle>
       <StyledInputElement
         type={type}
+        name={name}
         required={required}
         placeholder={placeholder}
         onFocus={handleFocus}
@@ -56,6 +67,7 @@ const LabeledInput = ({
         onChange={onChange}
         className={error ? "error" : ""}
         ref={inputRef}
+        value={value}
       />
     </StyledInputContainer>
   );

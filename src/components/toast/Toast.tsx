@@ -6,7 +6,7 @@ export enum ToastType {
   ALERT = "ALERT",
 }
 
-interface ToastProps {
+export interface ToastProps {
   message: string;
   type: ToastType;
   show?: boolean;
