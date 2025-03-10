@@ -9,6 +9,9 @@ import { ButtonType } from "../../button/StyledButton";
 import { useAppDispatch, useAppSelector } from "../../../redux/hooks";
 import { Post } from "../../../service";
 import { StyledDeletePostModalContainer } from "./DeletePostModalContainer";
+import { useQueryClient, useMutation } from "@tanstack/react-query";
+import useToast from "../../../hooks/useToast";
+import { ToastType } from "../../toast/Toast";
 
 interface DeletePostModalProps {
   show: boolean;
@@ -16,32 +19,28 @@ interface DeletePostModalProps {
   id: string;
 }
 
-export const DeletePostModal = ({
-  show,
-  id,
-  onClose,
-}: DeletePostModalProps) => {
-  const [showModal, setShowModal] = useState<boolean>(false);
+const DeletePostModal: React.FC<DeletePostModalProps> = ({ show, id, onClose }) => {
   const feed = useAppSelector((state) => state.user.feed);
   const dispatch = useAppDispatch();
   const service = useHttpRequestService();
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
+  const addToast = useToast();
+  const [showModal, setShowModal] = useState(false);
 
-  const handleDelete = () => {
-    try {
-      service.deletePost(id).then((res) => console.log(res));
-      const newFeed = feed.filter((post: Post) => post.id !== id);
-      dispatch(updateFeed(newFeed));
-      handleClose();
-    } catch (error) {
-      console.log(error);
+  const { mutateAsync: deletePost, status } = useMutation({
+    mutationKey: ["deletePost", id],
+    mutationFn: () => service.deletePost(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["infinitePosts"] });
+      dispatch(updateFeed(feed.filter((post: Post) => post.id !== id)));
+      addToast({ message: t("toast.deleteTweet"), type: ToastType.ALERT, show: true });
+      onClose();
+    },
+    onError: () => {
+      addToast({ message: t("toast.error"), type: ToastType.ALERT, show: true });
     }
-  };
-
-  const handleClose = () => {
-    setShowModal(false);
-    onClose();
-  };
+  });
 
   return (
     <>
@@ -55,13 +54,13 @@ export const DeletePostModal = ({
             title={t("modal-title.delete-post") + "?"}
             text={t("modal-content.delete-post")}
             show={showModal}
-            onClose={handleClose}
+            onClose={onClose}
             acceptButton={
               <Button
                 text={t("buttons.delete")}
                 buttonType={ButtonType.DELETE}
                 size={"MEDIUM"}
-                onClick={handleDelete}
+                onClick={() => deletePost()}
               />
             }
           />

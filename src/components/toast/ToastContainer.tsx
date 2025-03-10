@@ -9,9 +9,16 @@ interface ToastContainerProps {
 
 export const StyledToastContainer = styled.div`
   display: flex;
+  position: absolute;
+  bottom: 10px;
+  left: 0;
+  right: 0;
+  margin: auto;
+  width: 250px;
   padding: 8px 16px;
   align-items: center;
-  gap: 16px;
+  justify-items: between;
+  gap: 20px;
   position: fixed;
   border-radius: 8px;
   border: 1px solid

@@ -3,12 +3,13 @@ import {
     StyledLogoutPrompt,
     StyledProfileLogoutPromptContainer
 } from "./StyledProfileLogoutPromptContainer";
-import React, {useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
 import icon from "../../assets/icon.jpg";
-import {StyledP} from "../common/text";
-import {StyledContainer} from "../common/Container";
-import {useHttpRequestService} from "../../service/HttpRequestService";
-import {User} from "../../service";
+import { StyledP } from "../common/text";
+import { StyledContainer } from "../common/Container";
+import { useHttpRequestService } from "../../service/HttpRequestService";
+import { User } from "../../service";
+import { useQuery } from "@tanstack/react-query";
 
 
 interface ProfileLogoutPromptProps {
@@ -16,19 +17,23 @@ interface ProfileLogoutPromptProps {
     direction: string
 }
 
-const ProfileLogoutPrompt = ({margin, direction}: ProfileLogoutPromptProps) => {
+const ProfileLogoutPrompt = ({ margin, direction }: ProfileLogoutPromptProps) => {
     const [logoutOpen, setLogoutOpen] = useState(false);
     const service = useHttpRequestService()
     const [user, setUser] = useState<User>()
 
 
-    useEffect(() => {
-        handleGetUser().then(r => setUser(r))
-    }, []);
+    const userQuery = useQuery({
+        queryKey: ["me"],
+        queryFn: () => service.me()
+    })
 
-    const handleGetUser = async () => {
-        return await service.me()
-    }
+
+    useEffect(() => {
+        if (userQuery.status === 'success') {
+            setUser(userQuery.data)
+        }
+    }, [userQuery.status, userQuery.data]);
 
 
     const handleLogout = () => {
@@ -51,10 +56,10 @@ const ProfileLogoutPrompt = ({margin, direction}: ProfileLogoutPromptProps) => {
             cursor={'pointer'}
         >
             <StyledProfileLogoutPromptContainer direction={direction}>
-                <img src={user?.profilePicture ?? icon} className="icon" alt="Icon"/>
+                <img src={user?.profilePicture ?? icon} className="icon" alt="Icon" />
                 {logoutOpen &&
                     <StyledLogoutPrompt margin={margin} onClick={(event) => handleButtonClick(event)}>
-                        <LogoutPrompt show={logoutOpen}/>
+                        <LogoutPrompt show={logoutOpen} setLogoutOpen={setLogoutOpen}/>
                     </StyledLogoutPrompt>
                 }
             </StyledProfileLogoutPromptContainer>

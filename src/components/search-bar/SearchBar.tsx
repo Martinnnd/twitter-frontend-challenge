@@ -1,4 +1,5 @@
 import React, { ChangeEvent, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import SearchResultModal from "./search-result-modal/SearchResultModal";
 import { Author } from "../../service";
 import { useHttpRequestService } from "../../service/HttpRequestService";
@@ -7,24 +8,26 @@ import { StyledSearchBarContainer } from "./SearchBarContainer";
 import { StyledSearchBarInput } from "./SearchBarInput";
 
 export const SearchBar = () => {
-  const [results, setResults] = useState<Author[]>([]);
   const [query, setQuery] = useState<string>("");
   const service = useHttpRequestService();
-  let debounceTimer: NodeJS.Timeout;
   const { t } = useTranslation();
+
+  // Query para obtener resultados de la búsqueda de usuarios
+  const { data: results, refetch, isFetching } = useQuery({
+    queryKey: ["searchUsers", query],
+    queryFn: () => service.searchUsers(query, 4, 0)
+  });
+
+  // Debounce para evitar llamadas excesivas
+  let debounceTimer: NodeJS.Timeout;
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const inputQuery = e.target.value;
-
     setQuery(inputQuery);
 
     clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(async () => {
-      try {
-        setResults(await service.searchUsers(inputQuery, 4, 0));
-      } catch (error) {
-        console.log(error);
-      }
+    debounceTimer = setTimeout(() => {
+      refetch(); // Llamamos a refetch manualmente para realizar la consulta
     }, 300);
   };
 
@@ -35,7 +38,11 @@ export const SearchBar = () => {
         value={query}
         placeholder={t("placeholder.search")}
       />
-      <SearchResultModal show={query.length > 0} results={results} />
+      {isFetching ? (
+        <p>Loading...</p> // Mostrar un mensaje de carga mientras se obtienen los resultados
+      ) : (
+        <SearchResultModal show={query.length > 0} results={results || []} />
+      )}
     </StyledSearchBarContainer>
   );
 };

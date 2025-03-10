@@ -26,11 +26,16 @@ const FollowUserBox = ({
 
 
   useEffect(() => {
-    handleGetUser().then(r => {
-      setUser(r)
-      setIsFollowing(r?.following.some((f: Author) => f.id === id))
-    })
+    handleGetUser().then((r) => {
+      setUser(r);
+      if (r?.following) {
+        setIsFollowing(r.following.some((f: Author) => f.id === id));
+      } else {
+        setIsFollowing(false); // Si no hay propiedad 'following', asigna false.
+      }
+    });
   }, []);
+  
 
   const handleGetUser = async () => {
     return await service.me()

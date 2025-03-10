@@ -43,12 +43,13 @@ const httpRequestService = {
     }
   },
   createPost: async (data: PostData) => {
-    const res = await axios.post(`${url}/post`, data);
+    const res = await axios.post(`${url}/post/`, data);
     if (res.status === 201) {
       const { upload } = S3Service;
       for (const imageUrl of res.data.images) {
         const index: number = res.data.images.indexOf(imageUrl);
-        await upload(data.images![index], imageUrl);
+        const file = new File([data.images![index]], "image.jpg", { type: "image/jpeg" });
+        await upload(file, imageUrl);
       }
       return res.data;
     }
@@ -64,8 +65,13 @@ const httpRequestService = {
       return res.data;
     }
   },
-  getPosts: async (query: string) => {
-    const res = await axios.get(`${url}/post/${query}`);
+  getPosts: async (query: string, nextCursor: string | undefined = undefined) => {
+    const res = await axios.get(`${url}/post/${query}`, {
+      params: {
+        limit: 10,
+        after: nextCursor,
+      },
+    })
     if (res.status === 200) {
       return res.data;
     }
@@ -77,6 +83,7 @@ const httpRequestService = {
         skip,
       },
     });
+    console.log("Response from API:", res.data);  // Verifica la respuesta completa
     if (res.status === 200) {
       return res.data;
     }
@@ -127,7 +134,7 @@ const httpRequestService = {
     try {
       const cancelToken = axios.CancelToken.source();
 
-      const response = await axios.get(`${url}/user/search`, {
+      const response = await axios.get(`${url}/user/by_username/${username}`, {
         params: {
           username,
           limit,
@@ -188,7 +195,7 @@ const httpRequestService = {
   },
 
   deleteProfile: async () => {
-    const res = await axios.delete(`${url}/user/me`);
+    const res = await axios.delete(`${url}/user`);
 
     if (res.status === 204) {
       localStorage.removeItem("token");
@@ -249,8 +256,42 @@ const httpRequestService = {
     }
   },
   getCommentsByPostId: async (id: string) => {
-    const res = await axios.get(`${url}/post/comment/by_post/${id}`);
+    const res = await axios.get(`${url}/comment/${id}`);
     if (res.status === 200) {
+      return res.data;
+    }
+  },
+  getFollowing: async () => {
+    const res = await axios.get(`${url}/follower/followings/`);
+    if (res.status === 200) {
+      return res.data;
+    }
+  },
+  commentPost: async (postId: string, content: string, images: string[]) => {
+    const res = await axios.post(`${url}/comment/${postId}`, {
+      content,
+      images,
+    });
+    if (res.status === 201) {
+      return res.data;
+    }
+  },
+  putImage: async (file: File, putObjectUrl: string) => {
+    const axiosInstance = axios.create();
+    const blob = new Blob([file], { type: file.type });
+
+    const res = await axiosInstance.put(putObjectUrl, blob, { headers: { "Content-Type": file.type } });
+
+    if (res.status === 200) {
+      return res.data;
+    }
+  },
+  addImage: async (fileType: string) => {
+    const res = await axios.post(`${url}/post`, {
+      fileType
+    });
+    if (res.status === 201) {
+  
       return res.data;
     }
   },

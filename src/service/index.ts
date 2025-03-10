@@ -14,7 +14,7 @@ export interface SingInData {
 export interface PostData {
   content: string;
   parentId?: string;
-  images?: File[];
+  images?: string[];
 }
 
 export interface Post {
@@ -72,6 +72,12 @@ export interface ChatDTO {
   id: string;
   users: Author[];
   messages: MessageDTO[];
+}
+
+export interface Follow {
+  followerId: string;
+  followedId: string;
+  createdAt: Date;
 }
 
 

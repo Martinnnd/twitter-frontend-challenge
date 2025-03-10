@@ -1,38 +1,33 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useHttpRequestService } from "../service/HttpRequestService";
 import { setLength, updateFeed } from "../redux/user";
-import { useAppDispatch, useAppSelector } from "../redux/hooks";
+import { useAppDispatch } from "../redux/hooks";
+import { useQuery } from "@tanstack/react-query";
 
 interface UseGetCommentsProps {
   postId: string;
 }
 
 export const useGetComments = ({ postId }: UseGetCommentsProps) => {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(false);
-  const posts = useAppSelector((state) => state.user.feed);
-
   const dispatch = useAppDispatch();
-
   const service = useHttpRequestService();
 
-  useEffect(() => {
-    try {
-      setLoading(true);
-      setError(false);
-      service.getCommentsByPostId(postId).then((res) => {
-        const updatedPosts = Array.from(new Set([...posts, ...res.comment])).filter(
-          (post) => post.parentId === postId
-        );
-        dispatch(updateFeed(updatedPosts));
-        dispatch(setLength(updatedPosts.length));
-        setLoading(false);
-      });
-    } catch (e) {
-      setError(true);
-      console.log(e);
-    }
-  }, [postId]);
+  const commentsQuery = useQuery({
+    queryKey: ["comments", postId],
+    queryFn: () => service.getCommentsByPostId(postId),
+    staleTime: 60000, 
+  });
 
-  return { posts, loading, error };
+  useEffect(() => {
+    if (commentsQuery.data) {
+      dispatch(updateFeed(commentsQuery.data));
+      dispatch(setLength(commentsQuery.data.length));
+    }
+  }, [commentsQuery.data, dispatch]);
+
+  return { 
+    posts: commentsQuery.data ?? [],
+    loading: commentsQuery.isLoading, 
+    error: commentsQuery.isError 
+  };
 };
