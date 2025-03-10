@@ -1,11 +1,12 @@
-import React, {useEffect, useState} from "react";
+import {useEffect, useState} from "react";
 import Button from "../button/Button";
 import {useHttpRequestService} from "../../service/HttpRequestService";
 import UserDataBox from "../user-data-box/UserDataBox";
 import {useTranslation} from "react-i18next";
 import {ButtonType} from "../button/StyledButton";
-import "./FollowUserBox.css";
-import {Author, User} from "../../service";
+import {Follow} from "../../service";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { StyledFollowUserBoxContainer } from "./StyledFollowUserContainer";
 
 interface FollowUserBoxProps {
   profilePicture?: string;
@@ -22,38 +23,57 @@ const FollowUserBox = ({
                        }: FollowUserBoxProps) => {
   const {t} = useTranslation();
   const service = useHttpRequestService()
-  const [user, setUser] = useState<User>()
+  const queryClient = useQueryClient()
+  const [isFollowing, setIsFollowing] = useState<boolean>();
+
+  const followingQuery = useQuery({
+    queryKey: ["following"],
+    queryFn: () => service.getFollowing()
+  })
+
+  const followMutation = useMutation({
+    mutationKey: ["follow", id],
+    mutationFn: () => service.followUser(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["following"]
+      })
+      queryClient.invalidateQueries({
+        queryKey: ["infinitePosts"]
+      })
+      setIsFollowing(true)
+    }
+  })
+
+  const unfollowMutation = useMutation({
+    mutationKey: ["unfollow", id],
+    mutationFn: () => service.unfollowUser(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["following"]
+      })
+      queryClient.invalidateQueries({
+        queryKey: ["infinitePosts"]
+      })
+      setIsFollowing(false)
+    }
+  })
 
 
   useEffect(() => {
-    handleGetUser().then((r) => {
-      setUser(r);
-      if (r?.following) {
-        setIsFollowing(r.following.some((f: Author) => f.id === id));
-      } else {
-        setIsFollowing(false); // Si no hay propiedad 'following', asigna false.
-      }
-    });
-  }, []);
-  
-
-  const handleGetUser = async () => {
-    return await service.me()
-  }
-
-  const [isFollowing, setIsFollowing] = useState(false);
+    setIsFollowing(followingQuery.data?.some((follow: Follow) => follow.followedId === id))
+  }, [followingQuery, followingQuery.data, followingQuery.status]);
 
   const handleFollow = async () => {
     if (isFollowing) {
-      await service.unfollowUser(id);
+      unfollowMutation.mutate()
     } else {
-      await service.followUser(id);
+      followMutation.mutate()
     }
-    setIsFollowing(!isFollowing);
   };
 
   return (
-      <div className="box-container">
+      <StyledFollowUserBoxContainer>
         <UserDataBox
             id={id}
             name={name!}
@@ -66,7 +86,7 @@ const FollowUserBox = ({
             size={"SMALL"}
             onClick={handleFollow}
         />
-      </div>
+      </StyledFollowUserBoxContainer>
   );
 };
 

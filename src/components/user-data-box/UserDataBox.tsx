@@ -31,7 +31,7 @@ export const UserDataBox = ({
       />
       <div className="user-info-container">
         <p>{name ?? "Name"}</p>
-        <p style={{ color: "#566370" }}>{"@" + username ?? "@Username"}</p>
+        <p style={{ color: "#566370" }}>{"@" + (username ?? "Username")}</p>
       </div>
     </div>
   );

@@ -5,7 +5,7 @@ import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import { useQuery } from "@tanstack/react-query";
 
 export const useGetFeed = () => {
-  const posts = useAppSelector((state) => state.user.feed);
+  const posts = useAppSelector((state: { user: { feed: any[]; query: string } }) => state.user.feed);
   const query = useAppSelector((state) => state.user.query);
 
   const dispatch = useAppDispatch();

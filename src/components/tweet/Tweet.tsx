@@ -32,9 +32,12 @@ const Tweet = ({ post }: TweetProps) => {
   });
 
   // Query para obtener el post actual
-  const { data: actualPost, refetch: refetchPost } = useQuery<Post>({
+  const { data: actualPost } = useQuery<Post>({
     queryKey: ["post", post.id],
-    queryFn: () => service.getPostById(post.id),
+    queryFn: async () => {
+      const response = await service.getPostById(post.id);
+      return { ...response, reactions: response.reactions ?? [] }; // Evita `undefined`
+    },
   });
 
   // Mutación para eliminar una reacción
@@ -43,6 +46,7 @@ const Tweet = ({ post }: TweetProps) => {
     mutationFn: ({ id, type }: { id: string; type: string }) =>
       service.deleteReaction(id, type),
     onSuccess: () => {
+      // Invalida la query del post para obtener el post actualizado
       queryClient.invalidateQueries({ queryKey: ["post", post.id] });
     },
   });
@@ -53,6 +57,7 @@ const Tweet = ({ post }: TweetProps) => {
     mutationFn: ({ id, type }: { id: string; type: string }) =>
       service.createReaction(id, type),
     onSuccess: () => {
+      // Invalida la query del post para obtener el post actualizado
       queryClient.invalidateQueries({ queryKey: ["post", post.id] });
     },
   });
@@ -64,18 +69,25 @@ const Tweet = ({ post }: TweetProps) => {
 
   // Manejo de reacciones
   const handleReaction = async (type: string) => {
-    if (actualPost && actualPost.reactions) { // Validación aquí
-      const reacted = actualPost.reactions.find(
-        (r) => r.type === type && r.userId === user?.id
-      );
+    if (!actualPost || !user) {
+      console.error("El post o el usuario no están cargados.");
+      return;
+    }
   
+    const reacted = actualPost.reactions.find(
+      (r) => r.type === type && r.userId === user.id
+    );
+  
+    try {
       if (reacted) {
-        deleteReactionMutation.mutate({ id: actualPost.id, type });
+        await deleteReactionMutation.mutateAsync({ id: actualPost.id, type });
       } else {
-        createReactionMutation.mutate({ id: actualPost.id, type });
+        // Asegurarse de que 'type' sea mayúscula
+        const validType = type.toUpperCase();
+        await createReactionMutation.mutateAsync({ id: actualPost.id, type: validType });
       }
-    } else {
-      console.error("No se pudo acceder a las reacciones del post");
+    } catch (error) {
+      console.error("Error al manejar la reacción:", error);
     }
   };
 
@@ -134,7 +146,7 @@ const Tweet = ({ post }: TweetProps) => {
               ? setShowCommentModal(true)
               : navigate(`/compose/comment/${post.id}`)
           }
-          increment={0}
+          increment={1}
           reacted={false}
         />
         <Reaction

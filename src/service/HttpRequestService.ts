@@ -101,6 +101,7 @@ const httpRequestService = {
     }
   },
   createReaction: async (postId: string, reaction: string) => {
+    console.log("Enviando reacción:", reaction); // Verificar que el tipo de reacción es correcto
     const res = await axios.post(`${url}/reaction/${postId}`, {
       type: reaction,
     });
@@ -119,7 +120,7 @@ const httpRequestService = {
     }
   },
   followUser: async (userId: string) => {
-    const res = await axios.post(`${url}/follow/${userId}`, {});
+    const res = await axios.post(`${url}/follower/follow/${userId}`, {});
     if (res.status === 201) {
       return res.data;
     }
@@ -255,8 +256,8 @@ const httpRequestService = {
       return res.data;
     }
   },
-  getCommentsByPostId: async (id: string) => {
-    const res = await axios.get(`${url}/comment/${id}`);
+  getCommentsByPostId: async (postId: string) => {
+    const res = await axios.get(`${url}/comment/${postId}`);
     if (res.status === 200) {
       return res.data;
     }

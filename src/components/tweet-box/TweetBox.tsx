@@ -79,7 +79,6 @@ const TweetBox = ({parentId, close, mobile}: TweetBoxProps) => {
             queryClient.invalidateQueries({
                 queryKey: ["infinitePosts"]
             })
-            
         }
     })
  

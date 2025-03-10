@@ -3,6 +3,7 @@ import { useHttpRequestService } from "../service/HttpRequestService";
 import { updateFeed } from "../redux/user";
 import { useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
+import { useQuery } from "@tanstack/react-query";
 
 export const useGetProfilePosts = () => {
   const [loading, setLoading] = useState(false);
@@ -11,25 +12,21 @@ export const useGetProfilePosts = () => {
   const dispatch = useAppDispatch();
   const id = useParams().id;
   const service = useHttpRequestService();
+  const postsFromProfileQuery = useQuery({
+    queryKey: ["postsByUser", id],
+    enabled: id!==undefined,
+    queryFn: () => id && service.getPostsFromProfile(id)
+  })
 
   useEffect(() => {
     if (!id) return;
-    setLoading(true);
-    setError(false);
-    service
-      .getPostsFromProfile(id)
-      .then((res) => {
-        const updatedPosts = Array.from(new Set([...posts, ...res])).filter(
-          (post) => post.authorId === id
-        );
-        dispatch(updateFeed(updatedPosts));
-        setLoading(false);
-      })
-      .catch(() => {
-        setError(true);
-        setLoading(false);
-      });
-  }, [id]);
+    if (postsFromProfileQuery.status === "success") {
+      const validPosts = Array.isArray(posts) ? posts : [];
+      const combinedPosts = Array.from(new Set([...validPosts, ...postsFromProfileQuery.data]))
+      const updatedPosts = combinedPosts.filter((post) => post.authorId === id);
+      dispatch(updateFeed(updatedPosts));
+    }
+  }, [postsFromProfileQuery.status, postsFromProfileQuery.data]);
 
-  return { posts, loading, error };
+  return { posts, loading: postsFromProfileQuery.isLoading, error: postsFromProfileQuery.isError };
 };
