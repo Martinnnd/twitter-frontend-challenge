@@ -11,6 +11,8 @@ import TweetPage from "../../pages/create-tweet-page/TweetPage";
 import CommentPage from "../../pages/create-comment-page/CommentPage";
 import PostPage from "../../pages/post-page/PostPage";
 import ProtectedRoutes from "../protected-routes/ProtectedRoutes";
+import MessagesPage from "../../pages/messages/MessagePage";
+import ChatPage from "../../pages/messages/ChatPage";
 
 const WithNav = () => {
   return (
@@ -59,6 +61,14 @@ export const ROUTER = createBrowserRouter([
           {
             path: "/post/:id",
             element: <CommentPage />,
+          },
+          {
+            path: "/messages",
+            element: <MessagesPage />,
+          },
+          {
+            path: "/messages/:id",
+            element: <ChatPage />,
           },
         ],
       },

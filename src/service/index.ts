@@ -80,4 +80,11 @@ export interface Follow {
   createdAt: Date;
 }
 
+export interface Message {
+  senderId: string;
+  receiverId: string;
+  content: string;
+  createdAt: Date;
+}
+
 

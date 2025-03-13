@@ -8,6 +8,7 @@ interface ButtonProps {
 export enum ButtonType {
   DEFAULT = "DEFAULT",
   FOLLOW = "FOLLOW",
+  UNFOLLOW = "UNFOLLOW",
   DELETE = "DELETE",
   OUTLINED = "OUTLINED",
   DISABLED = "DISABLED",
@@ -30,6 +31,8 @@ export const StyledButton = styled.button<ButtonProps>`
           return props.theme.colors.main;
         case "FOLLOW":
           return props.theme.colors.black;
+        case "UNFOLLOW":
+          return props.theme.colors.green; 
         case "DELETE":
           return props.theme.colors.error;
         case "OUTLINED":
@@ -76,6 +79,8 @@ export const StyledButton = styled.button<ButtonProps>`
               return props.theme.hover.default;
             case ButtonType.FOLLOW:
               return props.theme.hover.follow;
+            case ButtonType.UNFOLLOW:
+              return props.theme.hover.white;
             case ButtonType.DELETE:
               return props.theme.hover.error;
             case ButtonType.OUTLINED:

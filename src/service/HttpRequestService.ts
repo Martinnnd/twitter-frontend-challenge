@@ -4,7 +4,6 @@ import { S3Service } from "./S3Service";
 
 const url = process.env.REACT_APP_API_URL || "http://localhost:8080/api"; //"https://twitter-ieea.onrender.com/api"
 
-
 axios.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
@@ -17,14 +16,15 @@ axios.interceptors.request.use(
 );
 
 axios.interceptors.response.use(
-  (response) => {return response},
+  (response) => {
+    return response;
+  },
   (e) => {
     if (e.response.status === 401) {
       localStorage.removeItem("token");
     }
     return Promise.reject(e);
   }
-  
 );
 
 const httpRequestService = {
@@ -48,7 +48,9 @@ const httpRequestService = {
       const { upload } = S3Service;
       for (const imageUrl of res.data.images) {
         const index: number = res.data.images.indexOf(imageUrl);
-        const file = new File([data.images![index]], "image.jpg", { type: "image/jpeg" });
+        const file = new File([data.images![index]], "image.jpg", {
+          type: "image/jpeg",
+        });
         await upload(file, imageUrl);
       }
       return res.data;
@@ -65,13 +67,16 @@ const httpRequestService = {
       return res.data;
     }
   },
-  getPosts: async (query: string, nextCursor: string | undefined = undefined) => {
+  getPosts: async (
+    query: string,
+    nextCursor: string | undefined = undefined
+  ) => {
     const res = await axios.get(`${url}/post/${query}`, {
       params: {
         limit: 10,
         after: nextCursor,
       },
-    })
+    });
     if (res.status === 200) {
       return res.data;
     }
@@ -83,13 +88,13 @@ const httpRequestService = {
         skip,
       },
     });
-    console.log("Response from API:", res.data);  // Verifica la respuesta completa
+    console.log("Response from API:", res.data); // Verifica la respuesta completa
     if (res.status === 200) {
       return res.data;
     }
   },
   me: async () => {
-    const res = await axios.get(`${url}/user/me`)
+    const res = await axios.get(`${url}/user/me`);
     if (res.status === 200) {
       return res.data;
     }
@@ -281,7 +286,9 @@ const httpRequestService = {
     const axiosInstance = axios.create();
     const blob = new Blob([file], { type: file.type });
 
-    const res = await axiosInstance.put(putObjectUrl, blob, { headers: { "Content-Type": file.type } });
+    const res = await axiosInstance.put(putObjectUrl, blob, {
+      headers: { "Content-Type": file.type },
+    });
 
     if (res.status === 200) {
       return res.data;
@@ -289,10 +296,21 @@ const httpRequestService = {
   },
   addImage: async (fileType: string) => {
     const res = await axios.post(`${url}/post`, {
-      fileType
+      fileType,
     });
     if (res.status === 201) {
-  
+      return res.data;
+    }
+  },
+  getMutuals: async () => {
+    const res = await axios.get(`${url}/follower/mutual`);
+    if (res.status === 200) {
+      return res.data;
+    }
+  },
+  getChatHistory: async (userId: string) => {
+    const res = await axios.get(`${url}/message/conversation/${userId}`);
+    if (res.status === 200) {
       return res.data;
     }
   },
