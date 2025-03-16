@@ -350,6 +350,24 @@ addImage: async (fileType: string) => {
       return res.data;
     }
   },
+  sendMessage: async (receiverId: string, content: string) => {
+    const res = await axios.post(`${url}/message/send/${receiverId}`, { content });
+    if (res.status === 201) {
+      return res.data;
+    }
+  },
+  getAllChats: async () => {
+    const res = await axios.get(`${url}/message/conversations`);
+    if (res.status === 200) {
+      return res.data;
+    }
+  },
+  canSendMessage: async (receiverId: string) => {
+    const res = await axios.get(`${url}/message/can-send/${receiverId}`);
+    if (res.status === 200) {
+      return res.data.canSend;
+    }
+  },
 };
 
 const useHttpRequestService = () => httpRequestService;

@@ -19,5 +19,6 @@ export const StyledAvatarContainer = styled.div`
     height: 100%;
     object-fit: cover;
     object-position: center;
+    border-radius: 50%;
   }
 `;

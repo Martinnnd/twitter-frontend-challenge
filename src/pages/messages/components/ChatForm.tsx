@@ -1,85 +1,57 @@
 import { Field, Form, Formik } from "formik";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import Button from "../../../components/button/Button";
 import { ButtonType } from "../../../components/button/StyledButton";
 import { StyledChatFormContainer } from "./StyledChatFormContainer";
 import { Socket } from "socket.io-client";
-import {
-  QueryObserverResult,
-  RefetchOptions,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useHttpRequestService } from "../../../service/HttpRequestService";
-import user from "../../../redux/user";
 
 interface ChatFormProps {
   receiverId: string;
   socket: Socket;
   setChatMessages: React.Dispatch<React.SetStateAction<any[]>>;
+  currentUserId: string | undefined;
 }
 
-const ChatForm = ({ receiverId, socket, setChatMessages }: ChatFormProps) => {
-  const [room, setRoom] = useState<string | null>(null);
+const ChatForm = ({ receiverId, socket, setChatMessages, currentUserId }: ChatFormProps) => {
   const initialValues = { message: "" };
   const service = useHttpRequestService();
-  const queryClient = useQueryClient();
+  const queryClient = useQueryClient(); // Para invalidar caché y refrescar mensajes
 
-  const userQuery = useQuery({
-    queryKey: ["me"],
-    queryFn: () => service.me(),
+  const sendMessageMutation = useMutation({
+    mutationFn: async (newMessage: { senderId: string; receiverId: string; content: string }) =>
+      service.sendMessage(receiverId, newMessage.content),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["chatHistory", receiverId] });
+    },
   });
 
-  useEffect(() => {
-    if (userQuery.status === "success") {
-      setRoom(`${userQuery.data.id}-${receiverId}`);
-    }
-  }, [userQuery.status, userQuery.data]);
 
-  useEffect(() => {
-    if (socket.connected) {
-      console.log("✅ Socket conectado con ID:", socket.id);
-    } else {
-      console.log("❌ Socket NO está conectado");
-    }
-
-    socket.on("connect", () => console.log("🔗 Conectado al WebSocket"));
-    socket.on("disconnect", () => console.log("❌ Desconectado del WebSocket"));
-
-    return () => {
-      socket.off("connect");
-      socket.off("disconnect");
-    };
-  }, [socket]);
 
   return (
     <Formik
       initialValues={initialValues}
-      validate={(values) => {
-        const errors: Partial<{ message: string }> = {};
-        return errors;
-      }}
       onSubmit={async (values, { resetForm, setSubmitting }) => {
-        if (values.message.length !== 0) {
-          if (room) {
-            console.log("📤 Enviando mensaje:", { receiverId, message: values.message });
+        if (!values.message.trim() || !currentUserId) return;
 
-            const newMessage = {
-              senderId: userQuery.data?.id,
-              receiverId,
-              content: values.message,
-            };
+        const newMessage = {
+          senderId: currentUserId, // ✅ Aseguramos que el senderId sea el usuario autenticado
+          receiverId,
+          content: values.message,
+        };
 
-            // 📌 Actualizar mensajes en la UI inmediatamente
-            setChatMessages((prevMessages) => [...prevMessages, newMessage]);
+        // 📌 Agregar mensaje a la UI inmediatamente
+        setChatMessages((prevMessages) => [...prevMessages, newMessage]);
 
-            // 📌 Enviar mensaje al servidor
-            socket.emit("send_message", { to: receiverId, content: values.message });
+        // 📌 Enviar mensaje a través de WebSocket
+        socket.emit("send_message", { to: receiverId, content: values.message });
 
-            setSubmitting(false);
-            resetForm();
-          }
-        }
+        // 📌 Guardar mensaje en la base de datos
+        sendMessageMutation.mutate(newMessage);
+
+        resetForm();
+        setSubmitting(false);
       }}
     >
       <Form style={{ width: "94%", justifyContent: "center" }}>

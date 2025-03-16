@@ -59,7 +59,7 @@ const ProfileLogoutPrompt = ({ margin, direction }: ProfileLogoutPromptProps) =>
                 <img src={user?.profilePicture ?? icon} className="icon" alt="Icon" />
                 {logoutOpen &&
                     <StyledLogoutPrompt margin={margin} onClick={(event) => handleButtonClick(event)}>
-                        <LogoutPrompt show={logoutOpen} />
+                        <LogoutPrompt show={logoutOpen} setLogoutOpen={setLogoutOpen}/>
                     </StyledLogoutPrompt>
                 }
             </StyledProfileLogoutPromptContainer>

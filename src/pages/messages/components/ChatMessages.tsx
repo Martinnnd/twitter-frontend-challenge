@@ -18,31 +18,29 @@ interface ChatMessagesProps {
 }
 
 const ChatMessages = ({ userId, socket }: ChatMessagesProps) => {
-  const { messages, loading, error, refetch } = useGetChatHistory(userId);
+  const { messages, loading, error } = useGetChatHistory(userId);
   const [chatMessages, setChatMessages] = useState(messages);
   const [user, setUser] = useState<User | null>(null);
   const service = useHttpRequestService();
   const navigate = useNavigate();
   const chatEndRef = useRef<HTMLDivElement | null>(null);
 
-  // Obtener el usuario del chat
+  // Obtener el usuario autenticado
+  const { data: currentUser } = useQuery({
+    queryKey: ["me"],
+    queryFn: () => service.me(),
+  });
+
+  const currentUserId = currentUser?.id;
+
+  console.log("currentuserid", currentUserId);
+  console.log("Mensajes recibidos:", messages);
+
+  // Obtener el usuario con el que estamos chateando
   const userQuery = useQuery({
     queryKey: ["user", userId],
     queryFn: () => service.getProfileView(userId),
   });
-
-  const redirectToProfile = () => {
-    navigate(`/profile/${userId}`);
-  };
-
-  // Desplazar al final del chat cuando haya un nuevo mensaje
-  const scrollToBottom = () => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [chatMessages]);
 
   useEffect(() => {
     if (userQuery.status === "success") {
@@ -54,16 +52,18 @@ const ChatMessages = ({ userId, socket }: ChatMessagesProps) => {
     setChatMessages(messages);
   }, [messages]);
 
-  // 📌 Escuchar evento `new_message` para actualizar la conversación en tiempo real
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [chatMessages]);
+
+  // Escuchar evento `new_message`
   useEffect(() => {
     const handleNewMessage = (newMessage: any) => {
-      console.log("📩 Nuevo mensaje recibido:", newMessage);
       setChatMessages((prevMessages) => [...prevMessages, newMessage]);
-      scrollToBottom();
+      chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
 
     socket.on("new_message", handleNewMessage);
-
     return () => {
       socket.off("new_message", handleNewMessage);
     };
@@ -75,29 +75,45 @@ const ChatMessages = ({ userId, socket }: ChatMessagesProps) => {
         <BackArrowIcon onClick={() => navigate("/messages")} />
         <Avatar
           src={user?.profilePicture ? user.profilePicture : ProfileIcon}
-          alt={user?.name ? user.name : ""}
-          onClick={redirectToProfile}
+          alt={user?.name || ""}
+          onClick={() => navigate(`/profile/${userId}`)}
         />
-        <h2>{user?.name ? user.name : ""}</h2>
+        <h2>{user?.name || ""}</h2>
       </StyledChatHeader>
 
       <StyledChatInputContainer>
         <ChatContainer>
-          {chatMessages.map((message, index) => (
-            message.senderId !== userId ? (
-              <SentMessage key={index}>{message.content}</SentMessage>
-            ) : (
-              <ReceivedMessage key={index}>{message.content}</ReceivedMessage>
-            )
-          ))}
+          {chatMessages.map((message, index) => {
+            console.log("📩 Mensaje completo:", message);
 
+            const isSentMessage =
+              message.senderId?.trim() === currentUserId?.trim();
+            console.log("🔹 senderId:", message.senderId);
+            console.log("🔹 currentUserId:", currentUserId);
+
+            return (
+              <React.Fragment key={index}>
+                {isSentMessage ? (
+                  <SentMessage>{message.content}</SentMessage> // Mensajes enviados → Derecha
+                ) : (
+                  <ReceivedMessage>{message.content}</ReceivedMessage> // Mensajes recibidos → Izquierda
+                )}
+              </React.Fragment>
+            );
+          })} 
           <div ref={chatEndRef} />
         </ChatContainer>
 
-        <ChatForm receiverId={userId} socket={socket} setChatMessages={setChatMessages} />
+        <ChatForm
+          receiverId={userId}
+          socket={socket}
+          setChatMessages={setChatMessages}
+          currentUserId={currentUserId}
+        />
       </StyledChatInputContainer>
     </>
   );
 };
+
 
 export default ChatMessages;

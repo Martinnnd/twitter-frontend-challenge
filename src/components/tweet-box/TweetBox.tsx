@@ -122,7 +122,7 @@ const TweetBox = ({ parentId, close, mobile }: TweetBoxProps) => {
       console.log("🔗 Presigned URL obtenida:", res.presignedUrl);
 
       try {
-        await service.putImage(file, res.presignedUrl); // Cambiar a presignedUrl
+        await service.putImage(file, res.presignedUrl); 
         imagesUrls.push(res.fileUrl);
       } catch (err) {
         console.error("❌ Error al subir la imagen:", err);
