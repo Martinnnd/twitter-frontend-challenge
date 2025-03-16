@@ -43,14 +43,16 @@ const httpRequestService = {
     }
   },
   createPost: async (data: PostData) => {
-    const res = await axios.post(`${url}/post/`, data);
+    let res
+    if(!data.parentId)
+      res = await axios.post(`${url}/post`, data);
+    else
+      res = await axios.post(`${url}/comment/${data.parentId}`, {content: data.content, images: data.images})
     if (res.status === 201) {
       const { upload } = S3Service;
       for (const imageUrl of res.data.images) {
         const index: number = res.data.images.indexOf(imageUrl);
-        const file = new File([data.images![index]], "image.jpg", {
-          type: "image/jpeg",
-        });
+        const file = new File([data.images![index]], `image-${index}`, { type: "image/jpeg" });
         await upload(file, imageUrl);
       }
       return res.data;
@@ -73,7 +75,7 @@ const httpRequestService = {
   ) => {
     const res = await axios.get(`${url}/post/${query}`, {
       params: {
-        limit: 10,
+        limit: 5,
         after: nextCursor,
       },
     });
@@ -283,25 +285,41 @@ const httpRequestService = {
     }
   },
   putImage: async (file: File, putObjectUrl: string) => {
-    const axiosInstance = axios.create();
-    const blob = new Blob([file], { type: file.type });
+    console.log("📤 Subiendo imagen a:", putObjectUrl);
+    
+    if (!putObjectUrl) {
+        console.error("❌ Error: putObjectUrl es undefined");
+        throw new Error("La URL pre-firmada es inválida");
+    }
 
-    const res = await axiosInstance.put(putObjectUrl, blob, {
-      headers: { "Content-Type": file.type },
+    const axiosInstance = axios.create();
+
+    const res = await axiosInstance.put(putObjectUrl, file, { 
+        headers: { "Content-Type": file.type },
     });
 
     if (res.status === 200) {
-      return res.data;
+        console.log("✅ Imagen subida correctamente");
+        return res.data;
+    } else {
+        console.error("❌ Error al subir la imagen:", res);
+        throw new Error("Fallo en la subida de la imagen");
     }
-  },
-  addImage: async (fileType: string) => {
-    const res = await axios.post(`${url}/post`, {
-      fileType,
-    });
-    if (res.status === 201) {
-      return res.data;
+},
+
+addImage: async (fileType: string) => {
+    try {
+        const res = await axios.post(`${url}/post/image/presignedUrl`, { fileType });
+
+        if (res.status === 200) {
+            return res.data;
+        }
+    } catch (error) {
+        console.error("Error al obtener presigned URL:", error);
+        throw new Error("No se pudo obtener la presigned URL.");
     }
-  },
+},
+
   getMutuals: async () => {
     const res = await axios.get(`${url}/follower/mutual`);
     if (res.status === 200) {
@@ -310,6 +328,24 @@ const httpRequestService = {
   },
   getChatHistory: async (userId: string) => {
     const res = await axios.get(`${url}/message/conversation/${userId}`);
+    if (res.status === 200) {
+      return res.data;
+    }
+  },
+  getFollowers: async () => {
+    const res = await axios.get(
+      '/follower/followers',
+      {}
+    );
+    if (res.status === 200) {
+      return res.data;
+    }
+  },
+  getFollowings: async () => {
+    const res = await axios.get(
+      '/follower/followings',
+      {}
+    );
     if (res.status === 200) {
       return res.data;
     }

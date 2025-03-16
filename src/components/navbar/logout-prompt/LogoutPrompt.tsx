@@ -1,50 +1,40 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, {useEffect, useState} from "react";
 import Modal from "../../modal/Modal";
 import logo from "../../../assets/logo.png";
 import Button from "../../button/Button";
-import { useNavigate } from "react-router-dom";
-import { useTranslation } from "react-i18next";
+import {useNavigate} from "react-router-dom";
+import {useTranslation} from "react-i18next";
 import SwitchButton from "../../switch/SwitchButton";
-import { ButtonType } from "../../button/StyledButton";
-import { StyledPromptContainer } from "./PromptContainer";
-import { StyledContainer } from "../../common/Container";
-import { StyledP } from "../../common/text";
-import { useHttpRequestService } from "../../../service/HttpRequestService";
-import { User } from "../../../service";
-import { useQuery } from "@tanstack/react-query";
-import useOnClickOutside from "../../../hooks/useOnClickOutside";
+import {ButtonType} from "../../button/StyledButton";
+import {StyledPromptContainer} from "./PromptContainer";
+import {StyledContainer} from "../../common/Container";
+import {StyledP} from "../../common/text";
+import {useHttpRequestService} from "../../../service/HttpRequestService";
+import {User} from "../../../service";
+import { useGetMe } from "../../../hooks/useGetProfilePosts";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface LogoutPromptProps {
   show: boolean;
-  setLogoutOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const LogoutPrompt = ({ show, setLogoutOpen }: LogoutPromptProps) => {
+const LogoutPrompt = ({ show }: LogoutPromptProps) => {
   const [showPrompt, setShowPrompt] = useState<boolean>(show);
   const [showModal, setShowModal] = useState<boolean>(false);
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const service = useHttpRequestService()
-  const [user, setUser] = useState<User>()
-  const ref = useRef<HTMLDivElement>(null)
-
-  const userQuery = useQuery({
-    queryKey: ["me"],
-    queryFn: () => service.me()
-  })
-
-  useOnClickOutside(ref, () => {
-    setShowPrompt(false) 
-    setLogoutOpen(false)
-  })
-
+  const user = useGetMe()
+  const queryClient = useQueryClient()
+  /*
   useEffect(() => {
-    if (userQuery.status === 'success') {
-      setUser(userQuery.data)
-    }
-  }, [userQuery.status, userQuery.data]);
+    handleGetUser().then(r => setUser(r))
+  }, []);
 
-
+  const handleGetUser = async () => {
+    return await service.me()
+  }
+  */
   const handleClick = () => {
     setShowModal(true);
   };
@@ -60,7 +50,7 @@ const LogoutPrompt = ({ show, setLogoutOpen }: LogoutPromptProps) => {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
-
+    queryClient.clear()
     navigate("/sign-in");
   };
 
@@ -71,28 +61,26 @@ const LogoutPrompt = ({ show, setLogoutOpen }: LogoutPromptProps) => {
   return (
     <>
       {showPrompt && (
-        <div ref={!showModal ? ref : undefined }>
-          <StyledPromptContainer>
-            <StyledContainer
-              flexDirection={"row"}
-              gap={"16px"}
-              borderBottom={"1px solid #ebeef0"}
-              padding={"16px"}
-              alignItems={"center"}
-            >
-              <StyledP primary>Es:</StyledP>
-              <SwitchButton
-                checked={i18n.language === "es"}
-                onChange={handleLanguageChange}
-              />
-            </StyledContainer>
-            <StyledContainer onClick={handleClick} alignItems={"center"}>
-              <StyledP primary>{`${t("buttons.logout")} @${user?.username
-                }`}</StyledP>
-            </StyledContainer>
-          </StyledPromptContainer>
-        </div>
-
+        <StyledPromptContainer>
+          <StyledContainer
+            flexDirection={"row"}
+            gap={"16px"}
+            borderBottom={"1px solid #ebeef0"}
+            padding={"16px"}
+            alignItems={"center"}
+          >
+            <StyledP primary>Es:</StyledP>
+            <SwitchButton
+              checked={i18n.language === "es"}
+              onChange={handleLanguageChange}
+            />
+          </StyledContainer>
+          <StyledContainer onClick={handleClick} alignItems={"center"}>
+            <StyledP primary>{`${t("buttons.logout")} @${
+              user?.username
+            }`}</StyledP>
+          </StyledContainer>
+        </StyledPromptContainer>
       )}
       <Modal
         show={showModal}
@@ -108,7 +96,6 @@ const LogoutPrompt = ({ show, setLogoutOpen }: LogoutPromptProps) => {
           />
         }
         onClose={() => setShowModal(false)}
-
       />
     </>
   );

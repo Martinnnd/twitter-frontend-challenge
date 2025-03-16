@@ -1,54 +1,47 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useCallback } from "react";
 import { Post } from "../../service";
 import { StyledContainer } from "../common/Container";
 import Tweet from "../tweet/Tweet";
 import Loader from "../loader/Loader";
-import { FetchNextPageOptions, InfiniteData, InfiniteQueryObserverResult } from "@tanstack/react-query";
 import { useInView } from "react-intersection-observer";
-import { useQueryClient } from "@tanstack/react-query";
+import { FetchNextPageOptions, InfiniteData, InfiniteQueryObserverResult } from "@tanstack/react-query";
 
 interface FeedProps {
   posts: Post[];
   loading: boolean;
-  fetchNextPage?: (options?: FetchNextPageOptions) => Promise<InfiniteQueryObserverResult<InfiniteData<{
-    data: Post[];
-    nextCursor: string | undefined;
-  }, unknown>, Error>>;
+  fetchNextPage: ((options?: FetchNextPageOptions) => Promise<InfiniteQueryObserverResult<InfiniteData<any, unknown>, Error>>) | (() => void);
   hasNextPage?: boolean;
-  ref?: (node?: Element | null) => void;
-  inView?: boolean;
 }
 
 const Feed = ({ posts, loading, fetchNextPage, hasNextPage }: FeedProps) => {
-  const { ref, inView } = useInView({
-    triggerOnce: false,
-    threshold: 1.0
-  });
-  
-  const queryClient = useQueryClient(); // React Query Client
-  
-  useEffect(() => {
-    if (inView && fetchNextPage) {
+  const { ref, inView } = useInView();
+
+  // Evita múltiples llamadas innecesarias a fetchNextPage
+  const loadMore = useCallback(() => {
+    if (inView && hasNextPage) {
       fetchNextPage();
     }
-  }, [fetchNextPage, inView]);
+  }, [inView, fetchNextPage, hasNextPage]);
 
   useEffect(() => {
-    // Aquí puedes escuchar cuando la cache de posts es invalidada y hacer que se recargue el feed
-    queryClient.invalidateQueries({ queryKey: ["posts"] });
-  }, [queryClient]);
+    loadMore();
+  }, [loadMore]);
 
   return (
-    <StyledContainer width={"100%"} alignItems={"center"}>
-      {posts && posts
-        .filter((post, index, self) => {
-          return self.findIndex((p) => p.id === post.id) === index;
-        })
-        .map((post: Post) => (
-          <Tweet key={post.id} post={post} />
-        ))}
-      <div ref={ref} />
-      {loading && <Loader />}
+    <StyledContainer width="100%" alignItems="center">
+      {posts?.length === 0 && <p>Uups...nothing down here...</p>}
+
+      {posts?.map((post) => (
+        <Tweet key={post.id} post={post} />
+      ))}
+
+      {loading && !hasNextPage && <Loader />} {/* Loader solo si ya no hay más páginas */}
+
+      {hasNextPage && (
+        <div className="text-center mt-6 p-2" ref={ref}>
+          <Loader />
+        </div>
+      )}
     </StyledContainer>
   );
 };

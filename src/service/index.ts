@@ -27,6 +27,7 @@ export interface Post {
   author: Author;
   reactions: Reaction[];
   comments: Post[];
+  isOptimistic?: boolean; // Added optional isOptimistic property
 }
 
 export interface Reaction {

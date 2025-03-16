@@ -5,23 +5,19 @@ import { io } from 'socket.io-client'
 import { useParams } from 'react-router-dom'
 
 const socket = io("http://localhost:8080", {
-    query: {
-      token: localStorage.getItem("token") || "", // Evita undefined
-    },
-    transports: ["websocket"],
-  });
-  
-  socket.on("connect", () => {
-    console.log("✅ Socket conectado correctamente");
-  });
-  
-  socket.on("error", (error) => {
-    console.error("❌ Error en Socket:", error);
-  });
-  
-  socket.on("connect_error", (err) => {
-    console.error("❌ Error de conexión con Socket:", err.message);
-  });
+  query: {
+    token: localStorage.getItem("token") || "", // Envía el token guardado
+  },
+  transports: ["websocket"],
+});
+
+socket.on("connect", () => {
+  console.log("✅ Socket conectado:", socket.id);
+});
+
+socket.on("error", (error) => {
+  console.error("❌ Error de conexión con Socket:", error.message);
+});
   
       
 

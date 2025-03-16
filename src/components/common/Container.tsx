@@ -8,7 +8,6 @@ type ContainerProps = {
 const ContainerBase = styled.div`
     display: flex;
     flex-direction: column;
-    height: 100%;
     box-sizing: border-box;
     transition: 0.3s ease-in-out;
     position: relative;
@@ -46,10 +45,18 @@ export const StyledContainer = styled(ContainerBase).attrs<ContainerProps>(
 //   Content
 // </StyledContainer>
 
+
+export const StyledHoverableContainer = styled(StyledContainer)`
+    hoverable
+    maxWidth="600px"
+    justifyContent="center"
+`;
+
+
 export const StyledScrollableContainer = styled(StyledContainer)`
   scrollbar-width: auto;
-    overflow-y: auto;
-    max-height: 600px;
+  overflow-y: auto;
+  
 `;
 
 export const StyledOverflowContainer = styled(StyledContainer)``;

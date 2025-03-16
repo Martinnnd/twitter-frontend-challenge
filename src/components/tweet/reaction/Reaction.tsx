@@ -1,9 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Icon, IconType } from "../../icon/Icon";
 import { StyledReactionContainer } from "./ReactionContainer";
-import { ToastType } from "../../toast/Toast";
-import { t } from "i18next";
-import useToastContext from "../../../hooks/useToast";
 
 interface ReactionProps {
   img: IconType;
@@ -21,29 +18,18 @@ const Reaction = ({
 }: ReactionProps) => {
   const [reactionCount, setReactionCount] = useState(count);
   const [reactionReacted, setReactionReacted] = useState(reacted);
-  const addToast = useToastContext();
-
-  useEffect(() => {
-    setReactionCount(count);
-    setReactionReacted(reacted);
-  },[reacted, count])
 
   const handleReaction = async () => {
     try {
-      console.log("Antes de llamar a reactionFunction");
       await reactionFunction();
-      console.log("Después de reactionFunction");
-      
       setReactionCount(
-        reactionReacted ? reactionCount - increment : reactionCount + increment
+        reactionReacted ? reactionCount - increment : reactionCount + 1
       );
       setReactionReacted(!reactionReacted);
     } catch (error) {
-      console.error("Error en handleReaction:", error); // 📌 Ver error exacto
-      addToast({ message: t("toast.error"), type: ToastType.ALERT, show: true });
+      console.log(error);
     }
   };
-  
 
   return (
     <StyledReactionContainer>

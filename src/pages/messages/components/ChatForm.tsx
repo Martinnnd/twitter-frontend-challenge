@@ -16,23 +16,14 @@ import user from "../../../redux/user";
 interface ChatFormProps {
   receiverId: string;
   socket: Socket;
+  setChatMessages: React.Dispatch<React.SetStateAction<any[]>>;
 }
 
-const ChatForm = ({ receiverId, socket }: ChatFormProps) => {
+const ChatForm = ({ receiverId, socket, setChatMessages }: ChatFormProps) => {
   const [room, setRoom] = useState<string | null>(null);
-
-  const initialValues = {
-    message: "",
-  };
-
+  const initialValues = { message: "" };
   const service = useHttpRequestService();
   const queryClient = useQueryClient();
-
-  socket.on("message:receive", () => {
-    queryClient.invalidateQueries({
-      queryKey: ["chat"],
-    });
-  });
 
   const userQuery = useQuery({
     queryKey: ["me"],
@@ -51,52 +42,45 @@ const ChatForm = ({ receiverId, socket }: ChatFormProps) => {
     } else {
       console.log("❌ Socket NO está conectado");
     }
-  
-    socket.on("connect", () => {
-      console.log("🔗 Conectado al WebSocket");
-    });
-  
-    socket.on("disconnect", () => {
-      console.log("❌ Desconectado del WebSocket");
-    });
-  
+
+    socket.on("connect", () => console.log("🔗 Conectado al WebSocket"));
+    socket.on("disconnect", () => console.log("❌ Desconectado del WebSocket"));
+
     return () => {
       socket.off("connect");
       socket.off("disconnect");
     };
   }, [socket]);
-  
 
   return (
     <Formik
       initialValues={initialValues}
       validate={(values) => {
-        if (values.message.length === 0) {
-        }
         const errors: Partial<{ message: string }> = {};
         return errors;
       }}
-      onSubmit={async (values, { resetForm, setErrors, setSubmitting }) => {
+      onSubmit={async (values, { resetForm, setSubmitting }) => {
         if (values.message.length !== 0) {
           if (room) {
-            console.log("📤 Enviando mensaje a servidor:", { receiverId, message: values.message });
-      
-            socket.emit("message:send", receiverId, { message: values.message });
-      
-            socket.once("message:sent", () => {
-              console.log("✅ Mensaje confirmado por el servidor");
-              queryClient.invalidateQueries({ queryKey: ["chat"] });
-              setSubmitting(false);
-              resetForm();
-            });
-      
-          } else {
-            setErrors({ message: "Error sending message" });
+            console.log("📤 Enviando mensaje:", { receiverId, message: values.message });
+
+            const newMessage = {
+              senderId: userQuery.data?.id,
+              receiverId,
+              content: values.message,
+            };
+
+            // 📌 Actualizar mensajes en la UI inmediatamente
+            setChatMessages((prevMessages) => [...prevMessages, newMessage]);
+
+            // 📌 Enviar mensaje al servidor
+            socket.emit("send_message", { to: receiverId, content: values.message });
+
+            setSubmitting(false);
+            resetForm();
           }
         }
       }}
-      
-      
     >
       <Form style={{ width: "94%", justifyContent: "center" }}>
         <StyledChatFormContainer>
@@ -104,19 +88,14 @@ const ChatForm = ({ receiverId, socket }: ChatFormProps) => {
             style={{
               width: "100%",
               height: "25px",
-              borderRadius: "20px", 
+              borderRadius: "20px",
               border: "1px solid grey",
             }}
             id="message"
             name="message"
             autoComplete="off"
           />
-          <Button
-            text="Send"
-            size="small"
-            buttonType={ButtonType.OUTLINED}
-            type="submit"
-          />
+          <Button text="Send" size="small" buttonType={ButtonType.OUTLINED} type="submit" />
         </StyledChatFormContainer>
       </Form>
     </Formik>

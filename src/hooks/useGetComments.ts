@@ -12,22 +12,22 @@ export const useGetComments = ({ postId }: UseGetCommentsProps) => {
   const dispatch = useAppDispatch();
   const service = useHttpRequestService();
 
-  const commentsQuery = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ["comments", postId],
     queryFn: () => service.getCommentsByPostId(postId),
-    staleTime: 60000, 
+    staleTime: 60000,
   });
 
   useEffect(() => {
-    if (commentsQuery.data) {
-      dispatch(updateFeed(commentsQuery.data));
-      dispatch(setLength(commentsQuery.data.length));
+    if (data) {
+      dispatch(updateFeed(data));
+      dispatch(setLength(data.length));
     }
-  }, [commentsQuery.data, dispatch]);
+  }, [data, dispatch]);
 
   return { 
-    posts: commentsQuery.data ?? [],
-    loading: commentsQuery.isLoading, 
-    error: commentsQuery.isError 
+    posts: data ?? [],
+    loading: isLoading, 
+    error: isError,
   };
 };

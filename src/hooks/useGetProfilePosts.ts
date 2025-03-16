@@ -1,32 +1,62 @@
-import { useEffect, useState } from "react";
-import { useHttpRequestService } from "../service/HttpRequestService";
-import { updateFeed } from "../redux/user";
+import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import { HttpService, useHttpRequestService } from "../service/HttpRequestService";
 import { useParams } from "react-router-dom";
-import { useAppDispatch, useAppSelector } from "../redux/hooks";
-import { useQuery } from "@tanstack/react-query";
 
+const httpService = new HttpService()
+const staleTime = 1000 * 60 * 2 // 5 min
+
+export const useGetMe = () => {
+  const { data } = useSuspenseQuery({
+    queryKey: ["me"], 
+    queryFn: httpService.service.me,
+    staleTime: staleTime
+  });
+
+  return data
+};
+
+export const useGetRecommendedUsers = (limit: number, skip: number) => {
+  const { data } = useSuspenseQuery({
+    queryKey: ["recommendedUsers", limit, skip], 
+    queryFn:  () => httpService.service.getRecommendedUsers(limit,skip),
+    staleTime: staleTime, 
+  });
+  return data
+}
+
+export const useGetFollowers = () => {
+  const { data } = useSuspenseQuery({
+    queryKey: ["followers"], 
+    queryFn:  () => httpService.service.getFollowers(),
+    staleTime: staleTime, 
+  });
+  return data
+}
+
+export const useGetFollowed = () => {
+  const { data } = useSuspenseQuery({
+    queryKey: ["followed"], 
+    queryFn:  () => httpService.service.getFollowings(),
+    staleTime: staleTime, 
+  });
+  return data
+}
+
+export const useGetProfile = (id: string) => {
+  const { data } = useSuspenseQuery({
+    queryKey: ["profile", id], 
+    queryFn:  () => httpService.service.getProfile(id),
+    staleTime: staleTime, 
+  });
+  return data
+}
 export const useGetProfilePosts = () => {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(false);
-  const posts = useAppSelector((state) => state.user.feed);
-  const dispatch = useAppDispatch();
-  const id = useParams().id;
-  const service = useHttpRequestService();
-  const postsFromProfileQuery = useQuery({
-    queryKey: ["postsByUser", id],
-    enabled: id!==undefined,
-    queryFn: () => id && service.getPostsFromProfile(id)
+  const id = useParams().id as string;
+  const { data, isLoading } = useSuspenseQuery({
+    queryKey: ['profilePosts', id],
+    queryFn: () => httpService.service.getPostsFromProfile(id),
+    staleTime: staleTime, 
   })
 
-  useEffect(() => {
-    if (!id) return;
-    if (postsFromProfileQuery.status === "success") {
-      const validPosts = Array.isArray(posts) ? posts : [];
-      const combinedPosts = Array.from(new Set([...validPosts, ...postsFromProfileQuery.data]))
-      const updatedPosts = combinedPosts.filter((post) => post.authorId === id);
-      dispatch(updateFeed(updatedPosts));
-    }
-  }, [postsFromProfileQuery.status, postsFromProfileQuery.data]);
-
-  return { posts, loading: postsFromProfileQuery.isLoading, error: postsFromProfileQuery.isError };
-};
+  return {posts: data, loading: isLoading}
+}
