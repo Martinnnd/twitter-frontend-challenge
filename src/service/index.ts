@@ -82,8 +82,8 @@ export interface Follow {
 }
 
 export interface Message {
-  senderId: string;
-  receiverId: string;
+  from: string;
+  to: string;
   content: string;
   createdAt: Date;
 }

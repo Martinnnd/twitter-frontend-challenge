@@ -58,7 +58,7 @@ const CommentPage = () => {
     setContent("");
     setImages([]);
     dispatch(setLength(length + 1));
-    const posts = await service.getPosts(Number(query));
+    const posts = await service.getPosts(query);
     dispatch(updateFeed(posts));
     exit();
   };

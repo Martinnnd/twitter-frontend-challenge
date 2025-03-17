@@ -18,8 +18,6 @@ interface ChatMessagesProps {
 }
 
 const ChatMessages = ({ userId, socket }: ChatMessagesProps) => {
-  console.log("📌 userId recibido:", userId);
-
   const { messages } = useGetChatHistory(userId);
   const [chatMessages, setChatMessages] = useState(messages);
   const [user, setUser] = useState<User | null>(null);
@@ -35,16 +33,12 @@ const ChatMessages = ({ userId, socket }: ChatMessagesProps) => {
 
   const currentUserId = currentUser?.id;
 
-  console.log("📌 currentUserId:", currentUserId);
-  console.log("📌 Mensajes recibidos:", messages);
-
   const userQuery = useQuery({
     queryKey: ["user", userId],
     queryFn: () => service.getProfileView(userId),
     retry: 3, // Intenta 3 veces antes de fallar
     refetchOnWindowFocus: true, // Recarga al volver al foco
   });
-  
 
   useEffect(() => {
     if (userQuery.isError) {
@@ -54,11 +48,9 @@ const ChatMessages = ({ userId, socket }: ChatMessagesProps) => {
 
   useEffect(() => {
     if (userQuery.status === "success" && userQuery.data?.user) {
-      console.log("🎯 Guardando usuario:", userQuery.data.user);
-      setUser(userQuery.data.user); 
+      setUser(userQuery.data.user);
     }
   }, [userQuery.status, userQuery.data]);
-  
 
   useEffect(() => {
     setChatMessages(messages);
@@ -96,19 +88,15 @@ const ChatMessages = ({ userId, socket }: ChatMessagesProps) => {
       <StyledChatInputContainer>
         <ChatContainer>
           {chatMessages.map((message, index) => {
-            console.log("📩 Mensaje completo:", message);
-
             const isSentMessage =
-              message.senderId?.trim() === currentUserId?.trim();
-            console.log("🔹 senderId:", message.senderId);
-            console.log("🔹 currentUserId:", currentUserId);
+              message.from?.trim() === currentUserId?.trim();
 
             return (
               <React.Fragment key={index}>
                 {isSentMessage ? (
-                  <SentMessage>{message.content}</SentMessage> // Mensajes enviados → Derecha
+                  <SentMessage>{message.content}</SentMessage>
                 ) : (
-                  <ReceivedMessage>{message.content}</ReceivedMessage> // Mensajes recibidos → Izquierda
+                  <ReceivedMessage>{message.content}</ReceivedMessage> 
                 )}
               </React.Fragment>
             );

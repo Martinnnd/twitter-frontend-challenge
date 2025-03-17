@@ -45,7 +45,6 @@ export const useGetSearchUsers = ({
       });
     } catch (e) {
       setError(true);
-      console.log(e);
     }
   }, [query, skip]);
 

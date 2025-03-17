@@ -22,12 +22,9 @@ const SignInPage = () => {
   const { t } = useTranslation();
 
   const handleSubmit = async (data: SingInData) => {
-    console.log("🔒 Datos de inicio de sesión:", data);  // Log para ver los datos al enviar el formulario
     try {
       await httpRequestService.signIn(data);
-      console.log("✅ Inicio de sesión exitoso");
     } catch (error) {
-      console.error("❌ Error en el inicio de sesión:", error);
       return Promise.reject(error);
     }
   };
@@ -43,11 +40,9 @@ const SignInPage = () => {
         if (!values.password) {
           errors.password = "Password is required";
         }
-        console.log("🔍 Validación de formulario:", errors);  // Log para ver los errores de validación
         return errors;
       }}
       onSubmit={async (values, { resetForm, setErrors, setSubmitting }) => {
-        console.log("📤 Enviando formulario:", values);  // Log para ver los valores antes de enviar
         try {
           await handleSubmit(values);
           resetForm();

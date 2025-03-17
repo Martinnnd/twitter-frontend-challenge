@@ -4,38 +4,52 @@ import { StyledContainer } from "../common/Container";
 import Tweet from "../tweet/Tweet";
 import Loader from "../loader/Loader";
 import { useInView } from "react-intersection-observer";
-import { FetchNextPageOptions, InfiniteData, InfiniteQueryObserverResult } from "@tanstack/react-query";
+import {
+  FetchNextPageOptions,
+  InfiniteData,
+  InfiniteQueryObserverResult,
+} from "@tanstack/react-query";
 
 interface FeedProps {
   posts: Post[];
   loading: boolean;
-  fetchNextPage: ((options?: FetchNextPageOptions) => Promise<InfiniteQueryObserverResult<InfiniteData<any, unknown>, Error>>) | (() => void);
+  fetchNextPage:
+    | ((
+        options?: FetchNextPageOptions
+      ) => Promise<
+        InfiniteQueryObserverResult<InfiniteData<any, unknown>, Error>
+      >)
+    | (() => void);
   hasNextPage?: boolean;
 }
+
 
 const Feed = ({ posts, loading, fetchNextPage, hasNextPage }: FeedProps) => {
   const { ref, inView } = useInView();
 
+  console.log("📢 Feed Posts:", posts);
+
   useEffect(() => {
-    if (inView) {
+    console.log("📢 InView:", inView);
+    console.log("📢 Has Next Page:", hasNextPage);
+    
+    if (inView && hasNextPage) {
+      console.log("📢 Fetching next page...");
       fetchNextPage();
     }
-  }, [fetchNextPage, inView]);
+  }, [fetchNextPage, inView, hasNextPage]);
+  
 
   return (
     <StyledContainer width={"100%"} alignItems={"center"}>
-      {posts.length === 0 && <p>Uups...nothing down here...</p>}
+      {posts.length === 0 && <p>Nothing here bro</p>}
       {posts &&
         posts
           .filter((post: Post) => post !== undefined) // Ensure undefined posts are filtered out
-          .map((post: Post) => (
-            <Tweet key={post.id} post={post} />
-          ))}
+          .map((post: Post) => <Tweet key={post.id} post={post} />)}
       {(hasNextPage || loading) && (
-        <div className="text-center mt-6 p-2">
-          <button ref={ref}>
-            <Loader />
-          </button>
+        <div ref={ref} className="text-center mt-6 p-2">
+          <Loader />
         </div>
       )}
     </StyledContainer>

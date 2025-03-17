@@ -11,7 +11,7 @@ export const useGetRecommendations = ({ page }: UseGetRecommendationsProps) => {
   const [users, setUsers] = useState<Author[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [hasMore, setHasMore] = useState(true); // Nuevo estado para verificar si hay más elementos
+  const [hasMore, setHasMore] = useState(true); 
   const service = useHttpRequestService();
 
   const getUsers = async () => {

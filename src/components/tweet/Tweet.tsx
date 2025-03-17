@@ -31,13 +31,13 @@ const Tweet = ({ post }: TweetProps) => {
     queryFn: service.me,
   });
 
-  const { data: actualPost } = useQuery<Post>({
-    queryKey: ["post", post.id],
-    queryFn: async () => {
-      const response = await service.getPostById(post.id);
-      return { ...response, reactions: response.reactions ?? [] }; // Si reactions es undefined, se establece como un array vacío
-    },
-  });
+  // const { data: actualPost } = useQuery<Post>({
+  //   queryKey: ["post", post.id],
+  //   queryFn: async () => {
+  //     const response = await service.getPostById(post.id);
+  //     return { ...response, reactions: response.reactions ?? [] }; // Si reactions es undefined, se establece como un array vacío
+  //   },
+  // });
 
   const createReactionMutation = useMutation({
     mutationKey: ["createReaction"],
@@ -67,35 +67,35 @@ const Tweet = ({ post }: TweetProps) => {
   
 
   const getCountByType = (type: string): number => {
-    // Verifica si actualPost y actualPost.reactions están definidos
-    return actualPost?.reactions?.filter((r) => r.type === type).length ?? 0;
+    // Verifica si post y post.reactions están definidos
+    return post?.reactions?.filter((r) => r.type === type).length ?? 0;
   };
 
   const handleReaction = async (type: string) => {
-    if (!actualPost || !user) {
+    if (!post || !user) {
       console.error("El post o el usuario no están cargados.");
       return;
     }
   
-    // Verifica si actualPost.reactions está definido antes de continuar
-    const reacted = actualPost.reactions?.find(
+    // Verifica si post.reactions está definido antes de continuar
+    const reacted = post.reactions?.find(
       (r) => r.type === type && r.userId === user.id
     );
   
     try {
       if (reacted) {
-        await deleteReactionMutation.mutateAsync({ id: actualPost.id, type });
+        await deleteReactionMutation.mutateAsync({ id: post.id, type });
         // Eliminar la reacción del localStorage
-        const updatedReactions = actualPost.reactions.filter(
+        const updatedReactions = post.reactions.filter(
           (r) => r.type !== type || r.userId !== user.id
         );
         localStorage.setItem(`post-${post.id}-reactions`, JSON.stringify(updatedReactions));
       } else {
         const validType = type.toUpperCase();
-        await createReactionMutation.mutateAsync({ id: actualPost.id, type: validType });
+        await createReactionMutation.mutateAsync({ id: post.id, type: validType });
         // Agregar la reacción al localStorage
         const newReactions = [
-          ...actualPost.reactions,
+          ...post.reactions,
           { type: validType, userId: user.id },
         ];
         localStorage.setItem(`post-${post.id}-reactions`, JSON.stringify(newReactions));
@@ -109,12 +109,12 @@ const Tweet = ({ post }: TweetProps) => {
 
   // Verifica si el usuario ha reaccionado a un post
   const hasReactedByType = (type: string): boolean => {
-    return actualPost?.reactions?.some(
+    return post?.reactions?.some(
       (r) => r.type === type && r.userId === user?.id
     ) ?? false;
   };
 
-  if (!actualPost || !user) return null;
+  if (!post || !user) return null;
 
   return (
     <StyledTweetContainer>
@@ -156,7 +156,7 @@ const Tweet = ({ post }: TweetProps) => {
       <StyledReactionsContainer>
         <Reaction
           img={IconType.CHAT}
-          count={actualPost?.comments?.length}
+          count={post?.comments?.length}
           reactionFunction={() =>
             window.innerWidth > 600
               ? setShowCommentModal(true)

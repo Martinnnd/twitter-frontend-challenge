@@ -3,8 +3,8 @@ import Feed from "./Feed";
 import { useGetFeed } from "../../hooks/useGetFeed";
 
 const ContentFeed = () => {
-  const { posts, isLoading, fetchNextPage, hasNextPage } = useGetFeed();
+  const { posts, loading, fetchNextPage, hasNextPage } = useGetFeed();
   
-  return <Feed posts={posts} loading={isLoading} fetchNextPage={fetchNextPage} hasNextPage={hasNextPage}/>;
+  return <Feed posts={posts} loading={loading} fetchNextPage={fetchNextPage} hasNextPage={hasNextPage}/>;
 };
 export default ContentFeed;

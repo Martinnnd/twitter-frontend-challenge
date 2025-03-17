@@ -74,7 +74,7 @@ const NavBar = () => {
             active={location.pathname === `/profile/${user?.id}`}
           />
             <NavItem
-              title={t("message")}
+              title={t("navbar.message")}
               onClick={() => {
                 navigate("/messages");
               }}

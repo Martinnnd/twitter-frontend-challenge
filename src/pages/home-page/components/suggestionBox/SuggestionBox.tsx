@@ -13,18 +13,17 @@ const SuggestionBox = () => {
   // Usar useQuery para obtener los usuarios recomendados
   const { data: users = [], isLoading, isError } = useQuery<User[]>({
     queryKey: ["recommendedUsers"],
-    queryFn: () => service.getRecommendedUsers(6, 0), // Llamada a la API para obtener los usuarios recomendados
-    // Reintentar en caso de error si es necesario
+    queryFn: () => service.getRecommendedUsers(6, 0),
     retry: 3, 
     refetchOnWindowFocus: false,
   });
 
   if (isLoading) {
-    return <p>{t("loading")}</p>; // Puede mostrar un mensaje de carga mientras se obtienen los datos
+    return <p>{t("loading")}</p>; 
   }
 
   if (isError) {
-    return <p>{t("error.loading-users")}</p>; // Mostrar un mensaje de error si algo salió mal
+    return <p>{t("error.loading-users")}</p>; 
   }
 
   return (
@@ -32,8 +31,8 @@ const SuggestionBox = () => {
       <h6>{t("suggestion.who-to-follow")}</h6>
       {users.length > 0 ? (
         users
-          .filter((value, index, array) => array.indexOf(value) === index) // Elimina duplicados
-          .slice(0, 5) // Limita a 5 usuarios
+          .filter((value, index, array) => array.indexOf(value) === index)
+          .slice(0, 5)
           .map((user) => (
             <FollowUserBox
               key={user.id}
@@ -44,10 +43,10 @@ const SuggestionBox = () => {
             />
           ))
       ) : (
-        <p>{t("suggestion.no-recommendations")}</p> // Mensaje si no hay recomendaciones
+        <p>{t("suggestion.no-recommendations")}</p> 
       )}
       {users.length > 5 && (
-        <a href="/recommendations">{t("suggestion.show-more")}</a> // Enlace si hay más de 5 usuarios recomendados
+        <a href="/recommendations">{t("suggestion.show-more")}</a>
       )}
     </StyledSuggestionBoxContainer>
   );

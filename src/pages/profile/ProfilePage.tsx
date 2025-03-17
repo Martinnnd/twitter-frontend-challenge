@@ -123,7 +123,6 @@ const ProfilePage = () => {
 
   useEffect(() => {
     if (profileDataQuery.status === 'success') {
-      console.log("✅ Datos de perfil recibidos:", profileDataQuery.data.user);
       setProfile({
         ...profileDataQuery.data.user, 
         private: !profileDataQuery.data.user.publicAccount 

@@ -15,7 +15,7 @@ export const StyledToastContainer = styled.div`
   right: 0;
   margin: auto;
   width: 250px;
-  padding: 8px 16px;
+  padding: 20px 36px;
   align-items: center;
   justify-items: between;
   gap: 20px;
@@ -26,6 +26,8 @@ export const StyledToastContainer = styled.div`
       switch (props.type) {
         case ToastType.ALERT:
           return props.theme.colors.errorContainer;
+        case ToastType.SUCCESS:
+          return props.theme.colors.main;
         default:
           return props.theme.colors.errorContainer;
       }
@@ -37,6 +39,8 @@ export const StyledToastContainer = styled.div`
       switch (props.type) {
         case ToastType.ALERT:
           return props.theme.colors.errorContainer;
+        case ToastType.SUCCESS:
+          return props.theme.colors.main;
         default:
           return props.theme.colors.errorContainer;
       }
@@ -54,6 +58,6 @@ export const StyledToastContainer = styled.div`
   transition: 0.3s ease-in-out;
   &:hover {
     cursor: pointer;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.43);
   }
 `;

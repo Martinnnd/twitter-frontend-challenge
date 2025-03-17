@@ -72,17 +72,15 @@ const httpRequestService = {
       };
     }
   },
-  getPosts: async (limit?: number, nextCursor?: string, lastCursor?: string) => {
-    const query = new URLSearchParams({
-      ...(limit && { limit: limit.toString() }),
-      ...(nextCursor && { after: nextCursor }),
-      ...(lastCursor && { before: lastCursor })
-    }).toString();
-    
-    const res = await axios.get(`${url}/post/?${query}`);
-    if (res.status === 200) {
+  getPosts: async (query: string, nextCursor: string | undefined = undefined) => {
+    const res = await axios.get(`${url}/post/${query}`, {
+      params: { limit: 10, after: nextCursor },
+    });
+  
+    if (res.status === 200 && res.data) {
       return res.data;
     }
+    return { data: [], nextCursor: null }; // Siempre devuelve un objeto con data
   },
   getRecommendedUsers: async (limit: number, skip: number) => {
     const res = await axios.get(`${url}/user`, {
@@ -91,7 +89,6 @@ const httpRequestService = {
         skip,
       },
     });
-    console.log("Response from API:", res.data); // Verifica la respuesta completa
     if (res.status === 200) {
       return res.data;
     }
@@ -114,8 +111,6 @@ const httpRequestService = {
       console.error("Reacción inválida:", reaction);
       return;
     }
-  
-    console.log("Enviando reacción:", reaction); // Verificar que el tipo de reacción es correcto
     const res = await axios.post(`${url}/reaction/${postId}`, {
       type: reaction,
     });
@@ -137,7 +132,7 @@ const httpRequestService = {
     }
   },
   unfollowUser: async (userId: string) => {
-    const res = await axios.delete(`${url}/follow/${userId}`);
+    const res = await axios.post(`${url}/follower/unfollow/${userId}`);
     if (res.status === 200) {
       return res.data;
     }
@@ -289,8 +284,6 @@ const httpRequestService = {
     }
   },
   putImage: async (file: File, putObjectUrl: string) => {
-    console.log("📤 Subiendo imagen a:", putObjectUrl);
-    
     if (!putObjectUrl) {
         console.error("❌ Error: putObjectUrl es undefined");
         throw new Error("La URL pre-firmada es inválida");
@@ -303,7 +296,6 @@ const httpRequestService = {
     });
 
     if (res.status === 200) {
-        console.log("✅ Imagen subida correctamente");
         return res.data;
     } else {
         console.error("❌ Error al subir la imagen:", res);
