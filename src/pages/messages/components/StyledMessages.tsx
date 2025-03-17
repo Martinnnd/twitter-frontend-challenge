@@ -2,7 +2,7 @@ import styled from 'styled-components';
 
 
 export const SentMessage = styled.div`
-  background-color: ${props => props.theme.colors.dark}; 
+  background-color: ${props => props.theme.colors.blue || '#1D9BF0'}; 
   padding: 10px;
   border-radius: 15px;
   color: white;
@@ -17,7 +17,7 @@ export const SentMessage = styled.div`
 `;
 
 export const ReceivedMessage = styled.div`
-  background-color: ${props => props.theme.colors.light}; 
+  background-color: ${props => props.theme.colors.lightGray || '#EFF3F4'}; 
   padding: 10px;
   border-radius: 15px;
   margin-left: 18px;

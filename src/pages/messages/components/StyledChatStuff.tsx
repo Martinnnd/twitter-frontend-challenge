@@ -5,7 +5,7 @@ export const StyledChatHeader = styled.div`
     display: flex;
     flex: row;
     width: 100%; 
-    padding: 0px 15px;
+    padding: 0px;
     justifyContent: normal;
     gap: 35px;
     align-items: center;

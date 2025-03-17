@@ -6,6 +6,6 @@ export const StyledChatFormContainer = styled.div`
     align-items: center;
     gap: 1rem;
     width: 100%;
-    padding: 1rem;
+    padding: 1.6rem;
     border-top: 1px solid ${props => props.theme.colors.containerLine};
 `

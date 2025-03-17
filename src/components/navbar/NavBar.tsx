@@ -65,15 +65,6 @@ const NavBar = () => {
             active={location.pathname === "/"}
           />
           <NavItem
-            title={t("message")}
-            onClick={() => {
-              navigate("/messages");
-            }}
-            icon={IconType.MESSAGE}
-            selectedIcon={IconType.ACTIVE_MESSAGE}
-            active={location.pathname === "/messages"}
-          />
-          <NavItem
             title={t("navbar.profile")}
             onClick={() => {
               navigate(`/profile/${user?.id}`);
@@ -82,6 +73,15 @@ const NavBar = () => {
             selectedIcon={IconType.ACTIVE_PROFILE}
             active={location.pathname === `/profile/${user?.id}`}
           />
+            <NavItem
+              title={t("message")}
+              onClick={() => {
+                navigate("/messages");
+              }}
+              icon={IconType.MESSAGE}
+              selectedIcon={IconType.ACTIVE_MESSAGE}
+              active={location.pathname === "/messages"}
+            />
           <StyledTweetButton onClick={() => navigate("/compose/tweet")}>
             +
           </StyledTweetButton>

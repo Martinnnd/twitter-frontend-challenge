@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useHttpRequestService } from "../service/HttpRequestService";
 import { setLength, updateFeed } from "../redux/user";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
@@ -7,33 +7,43 @@ import { isEqual } from "lodash";
 
 export const useGetFeed = () => {
   const posts = useAppSelector((state) => state.user.feed);
+    
   const dispatch = useAppDispatch();
+
   const service = useHttpRequestService();
-  
-  const {
+  const { 
+    status,
     data,
+    error,
     isFetching,
     isFetchingNextPage,
+    isFetchingPreviousPage,
     fetchNextPage,
+    fetchPreviousPage,
     hasNextPage,
-  } = useInfiniteQuery({
-    queryKey: ["posts"],
-    queryFn: async () => {
-      return service.getPosts("50");
+    hasPreviousPage, } = useInfiniteQuery({
+    queryKey: ['posts'],
+    queryFn: async ({ pageParam = undefined }) => {
+      return service.getPosts(50, pageParam); 
     },
-    getNextPageParam: (lastPage) => lastPage.info?.nextCursor || undefined,
     initialPageParam: undefined,
+    getNextPageParam: (lastPage) => lastPage.info?.nextCursor || undefined
   });
-
+  
   useEffect(() => {
     if (data) {
-      const allPosts = data.pages.flatMap((page) => page.posts);
+      const allPosts = data.pages.flatMap(page => page.posts); 
+      
       if (!isEqual(allPosts, posts)) {
+        
         dispatch(updateFeed(allPosts));
+
         dispatch(setLength(allPosts.length));
       }
     }
-  }, [data, posts, dispatch]);
-
-  return { posts, isLoading: isFetching, fetchNextPage, hasNextPage, isFetchingNextPage };
+  }, [data, dispatch]);
+  
+  
+  
+  return { posts, isLoading: isFetching, fetchNextPage, hasNextPage };
 };

@@ -39,7 +39,7 @@ const TweetBox = ({ parentId, close, mobile }: TweetBoxProps) => {
 
   const postsQuery = useQuery({
     queryKey: ["posts", query],
-    queryFn: () => service.getPosts(query),
+    queryFn: () => service.getPosts(Number(query)),
   });
 
   const userQuery = useQuery({

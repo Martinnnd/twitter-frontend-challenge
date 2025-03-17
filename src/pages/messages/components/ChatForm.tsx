@@ -54,14 +54,14 @@ const ChatForm = ({ receiverId, socket, setChatMessages, currentUserId }: ChatFo
         setSubmitting(false);
       }}
     >
-      <Form style={{ width: "94%", justifyContent: "center" }}>
+      <Form style={{ width: "93%", justifyContent: "center" }}>
         <StyledChatFormContainer>
           <Field
             style={{
-              width: "100%",
-              height: "25px",
+              width: "90%",
+              height: "30px",
               borderRadius: "20px",
-              border: "1px solid grey",
+              border: "1px solid lightgray",
             }}
             id="message"
             name="message"

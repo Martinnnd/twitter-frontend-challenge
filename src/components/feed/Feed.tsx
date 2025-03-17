@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from "react";
+import React, { useEffect } from "react";
 import { Post } from "../../service";
 import { StyledContainer } from "../common/Container";
 import Tweet from "../tweet/Tweet";
@@ -16,30 +16,26 @@ interface FeedProps {
 const Feed = ({ posts, loading, fetchNextPage, hasNextPage }: FeedProps) => {
   const { ref, inView } = useInView();
 
-  // Evita múltiples llamadas innecesarias a fetchNextPage
-  const loadMore = useCallback(() => {
-    if (inView && hasNextPage) {
+  useEffect(() => {
+    if (inView) {
       fetchNextPage();
     }
-  }, [inView, fetchNextPage, hasNextPage]);
-
-  useEffect(() => {
-    loadMore();
-  }, [loadMore]);
+  }, [fetchNextPage, inView]);
 
   return (
-    <StyledContainer width="100%" alignItems="center">
-      {posts?.length === 0 && <p>Uups...nothing down here...</p>}
-
-      {posts?.map((post) => (
-        <Tweet key={post.id} post={post} />
-      ))}
-
-      {loading && !hasNextPage && <Loader />} {/* Loader solo si ya no hay más páginas */}
-
-      {hasNextPage && (
-        <div className="text-center mt-6 p-2" ref={ref}>
-          <Loader />
+    <StyledContainer width={"100%"} alignItems={"center"}>
+      {posts.length === 0 && <p>Uups...nothing down here...</p>}
+      {posts &&
+        posts
+          .filter((post: Post) => post !== undefined) // Ensure undefined posts are filtered out
+          .map((post: Post) => (
+            <Tweet key={post.id} post={post} />
+          ))}
+      {(hasNextPage || loading) && (
+        <div className="text-center mt-6 p-2">
+          <button ref={ref}>
+            <Loader />
+          </button>
         </div>
       )}
     </StyledContainer>

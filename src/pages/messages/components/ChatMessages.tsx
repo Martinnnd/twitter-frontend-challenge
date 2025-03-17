@@ -18,7 +18,9 @@ interface ChatMessagesProps {
 }
 
 const ChatMessages = ({ userId, socket }: ChatMessagesProps) => {
-  const { messages, loading, error } = useGetChatHistory(userId);
+  console.log("📌 userId recibido:", userId);
+
+  const { messages } = useGetChatHistory(userId);
   const [chatMessages, setChatMessages] = useState(messages);
   const [user, setUser] = useState<User | null>(null);
   const service = useHttpRequestService();
@@ -33,20 +35,30 @@ const ChatMessages = ({ userId, socket }: ChatMessagesProps) => {
 
   const currentUserId = currentUser?.id;
 
-  console.log("currentuserid", currentUserId);
-  console.log("Mensajes recibidos:", messages);
+  console.log("📌 currentUserId:", currentUserId);
+  console.log("📌 Mensajes recibidos:", messages);
 
-  // Obtener el usuario con el que estamos chateando
   const userQuery = useQuery({
     queryKey: ["user", userId],
     queryFn: () => service.getProfileView(userId),
+    retry: 3, // Intenta 3 veces antes de fallar
+    refetchOnWindowFocus: true, // Recarga al volver al foco
   });
+  
 
   useEffect(() => {
-    if (userQuery.status === "success") {
-      setUser(userQuery.data);
+    if (userQuery.isError) {
+      console.error("❌ Error obteniendo el usuario:", userQuery.error);
+    }
+  }, [userQuery.isError, userQuery.error]);
+
+  useEffect(() => {
+    if (userQuery.status === "success" && userQuery.data?.user) {
+      console.log("🎯 Guardando usuario:", userQuery.data.user);
+      setUser(userQuery.data.user); 
     }
   }, [userQuery.status, userQuery.data]);
+  
 
   useEffect(() => {
     setChatMessages(messages);
@@ -78,7 +90,7 @@ const ChatMessages = ({ userId, socket }: ChatMessagesProps) => {
           alt={user?.name || ""}
           onClick={() => navigate(`/profile/${userId}`)}
         />
-        <h2>{user?.name || ""}</h2>
+        <h2>{user ? user.username : "Cargando..."}</h2>
       </StyledChatHeader>
 
       <StyledChatInputContainer>
@@ -100,7 +112,7 @@ const ChatMessages = ({ userId, socket }: ChatMessagesProps) => {
                 )}
               </React.Fragment>
             );
-          })} 
+          })}
           <div ref={chatEndRef} />
         </ChatContainer>
 
@@ -114,6 +126,5 @@ const ChatMessages = ({ userId, socket }: ChatMessagesProps) => {
     </>
   );
 };
-
 
 export default ChatMessages;

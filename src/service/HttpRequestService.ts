@@ -66,19 +66,20 @@ const httpRequestService = {
       },
     });
     if (res.status === 200) {
-      return res.data;
+      return {
+        posts: res.data.posts,  // Asegúrate de que los posts sean la lista de publicaciones
+        nextCursor: res.data.nextCursor,  // El campo nextCursor indica si hay más páginas
+      };
     }
   },
-  getPosts: async (
-    query: string,
-    nextCursor: string | undefined = undefined
-  ) => {
-    const res = await axios.get(`${url}/post/${query}`, {
-      params: {
-        limit: 5,
-        after: nextCursor,
-      },
-    });
+  getPosts: async (limit?: number, nextCursor?: string, lastCursor?: string) => {
+    const query = new URLSearchParams({
+      ...(limit && { limit: limit.toString() }),
+      ...(nextCursor && { after: nextCursor }),
+      ...(lastCursor && { before: lastCursor })
+    }).toString();
+    
+    const res = await axios.get(`${url}/post/?${query}`);
     if (res.status === 200) {
       return res.data;
     }
@@ -108,6 +109,12 @@ const httpRequestService = {
     }
   },
   createReaction: async (postId: string, reaction: string) => {
+    // Verificar que el tipo de reacción sea válido antes de enviarlo
+    if (!["LIKE", "RETWEET"].includes(reaction)) {
+      console.error("Reacción inválida:", reaction);
+      return;
+    }
+  
     console.log("Enviando reacción:", reaction); // Verificar que el tipo de reacción es correcto
     const res = await axios.post(`${url}/reaction/${postId}`, {
       type: reaction,
@@ -116,16 +123,13 @@ const httpRequestService = {
       return res.data;
     }
   },
-  deleteReaction: async (reactionId: string, type: string) => {
-    const res = await axios.delete(`${url}/reaction/${reactionId}`, {
-      data: {
-        type,
-      },
-    });
+  deleteReaction: async (postId: string, type: string) => {
+    const res = await axios.delete(`${url}/reaction/${postId}?type=${type}`); // `type` se pasa como query parameter
     if (res.status === 200) {
       return res.data;
     }
   },
+  
   followUser: async (userId: string) => {
     const res = await axios.post(`${url}/follower/follow/${userId}`, {});
     if (res.status === 201) {

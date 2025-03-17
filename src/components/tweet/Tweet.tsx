@@ -31,65 +31,81 @@ const Tweet = ({ post }: TweetProps) => {
     queryFn: service.me,
   });
 
-  // Query para obtener el post actual
   const { data: actualPost } = useQuery<Post>({
     queryKey: ["post", post.id],
     queryFn: async () => {
       const response = await service.getPostById(post.id);
-      return { ...response, reactions: response.reactions ?? [] }; // Evita `undefined`
+      return { ...response, reactions: response.reactions ?? [] }; // Si reactions es undefined, se establece como un array vacío
     },
   });
 
-  // Mutación para eliminar una reacción
-  const deleteReactionMutation = useMutation({
-    mutationKey: ["deleteReaction"],
-    mutationFn: ({ id, type }: { id: string; type: string }) =>
-      service.deleteReaction(id, type),
-    onSuccess: () => {
-      // Invalida la query del post para obtener el post actualizado
-      queryClient.invalidateQueries({ queryKey: ["post", post.id] });
-    },
-  });
-
-  // Mutación para crear una reacción
   const createReactionMutation = useMutation({
     mutationKey: ["createReaction"],
-    mutationFn: ({ id, type }: { id: string; type: string }) =>
-      service.createReaction(id, type),
-    onSuccess: () => {
-      // Invalida la query del post para obtener el post actualizado
-      queryClient.invalidateQueries({ queryKey: ["post", post.id] });
+    mutationFn: async ({ id, type }: { id: string; type: string }) => {
+      // Crear reacción en el backend
+      const response = await service.createReaction(id, type);
+      return response;  // Asegúrate de devolver la respuesta con el post actualizado
+    },
+    onSuccess: (data) => {
+      // Actualiza el cache con el post actualizado que contiene la nueva reacción
+      queryClient.setQueryData(["post", post.id], data);
     },
   });
+  
+  const deleteReactionMutation = useMutation({
+    mutationKey: ["deleteReaction"],
+    mutationFn: async ({ id, type }: { id: string; type: string }) => {
+      // Eliminar reacción en el backend
+      const response = await service.deleteReaction(id, type);
+      return response;  // Asegúrate de devolver la respuesta con el post actualizado
+    },
+    onSuccess: (data) => {
+      // Actualiza el cache con el post actualizado que contiene la reacción eliminada
+      queryClient.setQueryData(["post", post.id], data);
+    },
+  });
+  
 
-  // Función para contar reacciones de un tipo
   const getCountByType = (type: string): number => {
+    // Verifica si actualPost y actualPost.reactions están definidos
     return actualPost?.reactions?.filter((r) => r.type === type).length ?? 0;
   };
 
-  // Manejo de reacciones
   const handleReaction = async (type: string) => {
     if (!actualPost || !user) {
       console.error("El post o el usuario no están cargados.");
       return;
     }
   
-    const reacted = actualPost.reactions.find(
+    // Verifica si actualPost.reactions está definido antes de continuar
+    const reacted = actualPost.reactions?.find(
       (r) => r.type === type && r.userId === user.id
     );
   
     try {
       if (reacted) {
         await deleteReactionMutation.mutateAsync({ id: actualPost.id, type });
+        // Eliminar la reacción del localStorage
+        const updatedReactions = actualPost.reactions.filter(
+          (r) => r.type !== type || r.userId !== user.id
+        );
+        localStorage.setItem(`post-${post.id}-reactions`, JSON.stringify(updatedReactions));
       } else {
-        // Asegurarse de que 'type' sea mayúscula
         const validType = type.toUpperCase();
         await createReactionMutation.mutateAsync({ id: actualPost.id, type: validType });
+        // Agregar la reacción al localStorage
+        const newReactions = [
+          ...actualPost.reactions,
+          { type: validType, userId: user.id },
+        ];
+        localStorage.setItem(`post-${post.id}-reactions`, JSON.stringify(newReactions));
       }
     } catch (error) {
       console.error("Error al manejar la reacción:", error);
     }
   };
+  
+  
 
   // Verifica si el usuario ha reaccionado a un post
   const hasReactedByType = (type: string): boolean => {
