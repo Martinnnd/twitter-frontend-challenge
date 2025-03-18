@@ -82,6 +82,12 @@ const httpRequestService = {
     }
     return { data: [], nextCursor: null }; // Siempre devuelve un objeto con data
   },
+  getPostsFollowing: async () => {
+    const res = await axios.get(`${url}/post/following`);
+    if (res.status === 200) {
+      return res.data.posts;
+    }
+  },
   getRecommendedUsers: async (limit: number, skip: number) => {
     const res = await axios.get(`${url}/user`, {
       params: {

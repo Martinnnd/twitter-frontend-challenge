@@ -65,7 +65,7 @@ const FollowUserBox = ({
   }, [followingQuery, followingQuery.data, followingQuery.status]);
 
   const handleFollow = async () => {
-    if (isFollowing) {
+    if (!isFollowing) {
       unfollowMutation.mutate()
     } else {
       followMutation.mutate()
