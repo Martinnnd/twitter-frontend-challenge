@@ -246,7 +246,7 @@ const ProfilePage = () => {
                     height: "80%",
                   }}
                 >
-                  <StyledH5>Private account</StyledH5>
+                  <StyledH5>{t("title.private")}</StyledH5>
                 </div>
               )}
             </StyledContainer>

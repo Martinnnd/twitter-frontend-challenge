@@ -58,6 +58,7 @@
   },
   "title": {
     "login": "Ingresa tu correo electrónico o @nombre_de_usuario.",
-    "register": "Crea tu cuenta"
+    "register": "Crea tu cuenta",
+    "private": "Cuenta privada"
   }
 }

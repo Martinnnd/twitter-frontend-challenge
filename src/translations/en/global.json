@@ -57,6 +57,7 @@
   },
   "title": {
     "login": "Enter your email or username",
-    "register": "Create your account"
+    "register": "Create your account",
+    "private": "Private account"
   }
 }
