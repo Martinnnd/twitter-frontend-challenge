@@ -16,14 +16,10 @@ export const useGetFeed = () => {
     queryKey: ["infinitePosts", query],
     initialPageParam: undefined,
     queryFn: async ({ pageParam }) => {
-      console.log("📢 Fetching page with cursor:", pageParam);
       const response = await service.getPosts(query, pageParam);
-      console.log("📢 API Response:", response);
       return response;
     },
     getNextPageParam: (lastPage) => {
-      console.log("📢 Last Page Data:", lastPage);
-      console.log("📢 Next Cursor:", lastPage?.nextCursor);
       return lastPage?.nextCursor ?? undefined;
     },
   });
@@ -31,9 +27,7 @@ export const useGetFeed = () => {
 
 useEffect(() => {
   if (data) {
-    console.log("📢 Páginas recibidas:", data.pages);
     const allPosts = data.pages.flatMap((page) => page.data) ?? [];
-    console.log("📢 Total de posts cargados:", allPosts.length);
     
     setFeed(allPosts);
     dispatch(updateFeed(allPosts));

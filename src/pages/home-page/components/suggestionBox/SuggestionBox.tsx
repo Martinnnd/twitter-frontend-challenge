@@ -10,7 +10,6 @@ const SuggestionBox = () => {
   const service = useHttpRequestService();
   const { t } = useTranslation();
 
-  // Usar useQuery para obtener los usuarios recomendados
   const { data: users = [], isLoading, isError } = useQuery<User[]>({
     queryKey: ["recommendedUsers"],
     queryFn: () => service.getRecommendedUsers(6, 0),

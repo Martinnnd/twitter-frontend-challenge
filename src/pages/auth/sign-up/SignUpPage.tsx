@@ -33,13 +33,10 @@ const SignUpPage = () => {
 
   const handleSubmit = async (data: SignUpData) => {
     try {
-      console.log("Submitting registration data:", data); // Verificar si llega aquí
       const { confirmPassword, ...requestData } = data;
       await httpRequestService.signUp(requestData);
-      console.log("User registered successfully"); // Verificar si llega aquí
       return true;
     } catch (error) {
-      console.error("Error during registration:", error); // Ver errores en consola
       return Promise.reject(error);
     }
   };

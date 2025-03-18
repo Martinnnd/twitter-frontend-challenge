@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useState, startTransition} from "react";
 import ProfileInfo from "./ProfileInfo";
 import {useNavigate, useParams} from "react-router-dom";
 import Modal from "../../components/modal/Modal";
@@ -112,7 +112,10 @@ const ProfilePage = () => {
     if (profile?.id === user?.id) {
       deleteProfileMutation.mutate();
     } else {
-      setFollowing(false); // ✅ Cambia inmediatamente la UI
+      startTransition(() => {
+        setFollowing(false); // ✅ Cambia inmediatamente la UI sin suspender
+      });
+      
       await unfollowMutation.mutateAsync({ id: profile!.id });
       setShowModal(false);
     }
@@ -121,19 +124,21 @@ const ProfilePage = () => {
 
   useEffect(() => {
     if (profileDataQuery.status === "success" && followingQuery.status === "success") {
+      const isCurrentUser = profileDataQuery.data.user.id === user?.id; // Verifica si es el usuario actual
+  
       setProfile({
         ...profileDataQuery.data.user,
-        private: !profileDataQuery.data.user.publicAccount,
+        private: isCurrentUser ? false : !profileDataQuery.data.user.publicAccount, // ✅ Siempre es público si es el usuario actual
       });
   
-      // Verifica correctamente si el usuario está en la lista de seguidos
       const isFollowing = followingQuery.data.some(
         (follow: Follow) => follow.followedId === profileDataQuery.data.user.id
       );
   
       setFollowing(isFollowing);
     }
-  }, [profileDataQuery.status, profileDataQuery.data, followingQuery.status, followingQuery.data]);
+  }, [profileDataQuery.status, profileDataQuery.data, followingQuery.status, followingQuery.data, user]);
+  
   
 
   if (!id) return null;
@@ -157,11 +162,15 @@ const ProfilePage = () => {
           buttonText: t("buttons.unfollow"),
         });
       } else {
-        setFollowing(true); // ✅ Refleja inmediatamente el cambio en la UI
+        startTransition(() => {
+          setFollowing(true); // ✅ Evita la suspensión
+        });
+  
         await followMutation.mutateAsync({ id: profile!.id });
       }
     }
   };
+  
   
 
   const getProfileData = async () => {
@@ -208,7 +217,7 @@ const ProfilePage = () => {
               </StyledContainer>
             </StyledContainer>
             <StyledContainer width={"100%"}>
-              {!profile.private || !following ? (
+              {!profile.private || following ? (
                 <ProfileFeed />
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '80%' }}>

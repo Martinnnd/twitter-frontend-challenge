@@ -27,7 +27,6 @@ const Reaction = ({
       );
       setReactionReacted(!reactionReacted);
     } catch (error) {
-      console.log(error);
     }
   };
 

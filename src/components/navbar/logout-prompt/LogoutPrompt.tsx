@@ -28,9 +28,6 @@ const LogoutPrompt = ({ show, setLogoutOpen }: LogoutPromptProps) => {
   const [user, setUser] = useState<User>()
   const ref = useRef<HTMLDivElement>(null)
 
-  
-  console.log("Modal state:", showModal); // 👉 Agrega esto aquí
-
 
   const userQuery = useQuery({
     queryKey: ["me"],
@@ -63,7 +60,6 @@ const LogoutPrompt = ({ show, setLogoutOpen }: LogoutPromptProps) => {
   };
 
   const handleLogout = () => {
-    console.log("Logout button clicked!"); // Verifica si esto aparece en la consola
     localStorage.removeItem("token");
     navigate("/sign-in");
   };
