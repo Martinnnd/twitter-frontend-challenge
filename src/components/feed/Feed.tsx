@@ -27,14 +27,8 @@ interface FeedProps {
 const Feed = ({ posts, loading, fetchNextPage, hasNextPage }: FeedProps) => {
   const { ref, inView } = useInView();
 
-  console.log("📢 Feed Posts:", posts);
-
   useEffect(() => {
-    console.log("📢 InView:", inView);
-    console.log("📢 Has Next Page:", hasNextPage);
-    
     if (inView && hasNextPage) {
-      console.log("📢 Fetching next page...");
       fetchNextPage();
     }
   }, [fetchNextPage, inView, hasNextPage]);
