@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Tab from "./tab/Tab";
-import { updateFeed } from "../../../../../redux/user";
+import { setQuery, updateFeed } from "../../../../../redux/user";
 import { useHttpRequestService } from "../../../../../service/HttpRequestService";
 import { useTranslation } from "react-i18next";
 import { useAppDispatch } from "../../../../../redux/hooks";
@@ -12,23 +12,12 @@ const TabBar = () => {
   const service = useHttpRequestService();
   const { t } = useTranslation();
 
-  const handleClick = async (value: boolean, following: boolean) => {
-    
+  const handleClick = async (value: boolean, query: string) => {
     setActiveFirstPage(value);
-    let data
-    if(following){
-      data = await service.getPostsFollowing().catch((e) => {
-        console.log(e);
-      });
-      
-    } else {
-      const query = ""; // Replace with a valid query string or variable
-      data = await service.getPosts(query).catch((e) => {
-        console.log(e);
-      });
-      data = data.posts
-    }
-    dispatch(updateFeed([]))
+    dispatch(setQuery(query));
+    const data = await service.getPosts(query).catch((e) => {
+      console.log(e);
+    });
     dispatch(updateFeed(data));
   };
 
@@ -38,12 +27,12 @@ const TabBar = () => {
         <Tab
           active={activeFirstPage}
           text={t("header.for-you")}
-          onClick={() => handleClick(true, false)}
+          onClick={() => handleClick(true, "")}
         />
         <Tab
           active={!activeFirstPage}
           text={t("header.following")}
-          onClick={() => handleClick(false, true)}
+          onClick={() => handleClick(false, "following")}
         />
       </StyledTabBarContainer>
     </>

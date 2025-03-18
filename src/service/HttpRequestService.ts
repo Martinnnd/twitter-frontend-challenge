@@ -2,7 +2,7 @@ import type { PostData, SingInData, SingUpData } from "./index";
 import axios from "axios";
 import { S3Service } from "./S3Service";
 
-const url = process.env.REACT_APP_API_URL || "http://localhost:8080/api"; //"https://twitter-ieea.onrender.com/api"
+const url = process.env.REACT_APP_API_URL || "https://twitter-frontend-challenge-nine.vercel.app/"; 
 
 axios.interceptors.request.use(
   (config) => {
@@ -67,8 +67,8 @@ const httpRequestService = {
     });
     if (res.status === 200) {
       return {
-        posts: res.data.posts,  // Asegúrate de que los posts sean la lista de publicaciones
-        nextCursor: res.data.nextCursor,  // El campo nextCursor indica si hay más páginas
+        posts: res.data.posts,
+        nextCursor: res.data.nextCursor,  
       };
     }
   },
