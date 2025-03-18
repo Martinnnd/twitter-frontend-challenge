@@ -36,16 +36,19 @@ const ChatForm = ({ receiverId, socket, setChatMessages, currentUserId }: ChatFo
         if (!values.message.trim() || !currentUserId) return;
 
         const newMessage = {
-          senderId: currentUserId, // ✅ Aseguramos que el senderId sea el usuario autenticado
+          from: currentUserId,  // 🔥 Aseguramos que "from" se asigne correctamente
+          senderId: currentUserId,
           receiverId,
           content: values.message,
         };
-
-        // 📌 Agregar mensaje a la UI inmediatamente
         setChatMessages((prevMessages) => [...prevMessages, newMessage]);
 
         // 📌 Enviar mensaje a través de WebSocket
-        socket.emit("send_message", { to: receiverId, content: values.message });
+        socket.emit("send_message", { 
+          to: receiverId, 
+          content: values.message,
+          from: currentUserId // 🔥 Aseguramos que se envíe con el mismo formato que los recibidos
+        });
 
         // 📌 Guardar mensaje en la base de datos
         sendMessageMutation.mutate(newMessage);

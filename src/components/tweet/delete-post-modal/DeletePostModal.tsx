@@ -34,11 +34,11 @@ const DeletePostModal: React.FC<DeletePostModalProps> = ({ show, id, onClose }) 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["infinitePosts"] });
       dispatch(updateFeed(feed.filter((post: Post) => post.id !== id)));
-      addToast({ message: t("toast.deleteTweet"), type: ToastType.ALERT, show: true });
+      addToast({ message: t("Deleted tweet"), type: ToastType.SUCCESS, show: true });
       onClose();
     },
     onError: () => {
-      addToast({ message: t("toast.error"), type: ToastType.ALERT, show: true });
+      addToast({ message: t("Deleted tweet error"), type: ToastType.ALERT, show: true });
     }
   });
 

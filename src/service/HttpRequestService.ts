@@ -268,8 +268,8 @@ const httpRequestService = {
       return res.data;
     }
   },
-  getFollowing: async () => {
-    const res = await axios.get(`${url}/follower/followings/`);
+  getFollowing: async (userId: string) => {
+    const res = await axios.get(`${url}/follower/followings/${userId}`);
     if (res.status === 200) {
       return res.data;
     }

@@ -6,6 +6,7 @@ import { useHttpRequestService } from "../../service/HttpRequestService";
 import { useTranslation } from "react-i18next";
 import { StyledSearchBarContainer } from "./SearchBarContainer";
 import { StyledSearchBarInput } from "./SearchBarInput";
+import Loader from "../loader/Loader";
 
 export const SearchBar = () => {
   const [query, setQuery] = useState<string>("");
@@ -39,7 +40,7 @@ export const SearchBar = () => {
         placeholder={t("placeholder.search")}
       />
       {isFetching ? (
-        <p>Loading...</p> // Mostrar un mensaje de carga mientras se obtienen los resultados
+        <Loader />
       ) : (
         <SearchResultModal show={query.length > 0} results={results || []} />
       )}

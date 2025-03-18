@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Navigate, Outlet, useActionData } from "react-router-dom";
 import { useHttpRequestService } from "../../service/HttpRequestService";
+import Loader from "../loader/Loader";
 
 const ProtectedRoutes = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -20,7 +21,7 @@ const ProtectedRoutes = () => {
   }, [service]);
 
   if (isAuthenticated === null) {
-    return <div>Loading...</div>;
+    return <Loader />;
   }
   return isAuthenticated ? <Outlet /> : <Navigate to="/sign-in" replace />;
 };

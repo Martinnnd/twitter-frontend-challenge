@@ -15,11 +15,10 @@ const StyledLoaderContainer = styled.div`
 `;
 
 const StyledLoaderSpinner = styled.div`
-  width: 60px;
-  height: 60px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   border: 2px solid #ccc;
-  margin-top: 100px;
   border-top-color: ${({ theme }) => theme.colors.main};
   animation: ${spinAnimation} 0.8s linear infinite;
 `;

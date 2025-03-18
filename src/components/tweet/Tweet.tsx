@@ -162,7 +162,7 @@ const Tweet = ({ post }: TweetProps) => {
               ? setShowCommentModal(true)
               : navigate(`/compose/comment/${post.id}`)
           }
-          increment={1}
+          increment={0}
           reacted={false}
         />
         <Reaction

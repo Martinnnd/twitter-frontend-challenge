@@ -36,9 +36,10 @@ const ProfilePage = () => {
   const addToast = useToast()
 
   const followingQuery = useQuery({
-    queryKey: ["following"],
-    queryFn: () => service.getFollowing()
-  })
+    queryKey: ["following", user?.id], 
+    queryFn: () => user?.id && service.getFollowing(user.id),
+    enabled: !!user?.id 
+  });
 
 
   const followMutation = useMutation({
@@ -69,7 +70,7 @@ const ProfilePage = () => {
     mutationKey: ["deleteProfile"],
     mutationFn: () => service.deleteProfile(),
     onSuccess: () => {
-      addToast({ message: t("toast.deleteProfile"), type: ToastType.ALERT, show: true })
+      addToast({ message: t("Profile deleted"), type: ToastType.SUCCESS, show: true })
       navigate("/sign-in");
     }
   })
@@ -107,31 +108,33 @@ const ProfilePage = () => {
     else return { component: ButtonType.FOLLOW, text: t("buttons.follow") };
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (profile?.id === user?.id) {
       deleteProfileMutation.mutate();
     } else {
-      unfollowMutation.mutate({ id: profile!.id });
-
-      service.unfollowUser(profile!.id).then(async () => {
-        setFollowing(false);
-        setShowModal(false);
-        await getProfileData();
-      });
+      setFollowing(false); // ✅ Cambia inmediatamente la UI
+      await unfollowMutation.mutateAsync({ id: profile!.id });
+      setShowModal(false);
     }
   };
+  
 
   useEffect(() => {
-    if (profileDataQuery.status === 'success') {
+    if (profileDataQuery.status === "success" && followingQuery.status === "success") {
       setProfile({
-        ...profileDataQuery.data.user, 
-        private: !profileDataQuery.data.user.publicAccount 
+        ...profileDataQuery.data.user,
+        private: !profileDataQuery.data.user.publicAccount,
       });
-      setFollowing(
-        followingQuery.data?.some((follow: Follow) => follow.followedId === profileDataQuery.data.user?.id)
+  
+      // Verifica correctamente si el usuario está en la lista de seguidos
+      const isFollowing = followingQuery.data.some(
+        (follow: Follow) => follow.followedId === profileDataQuery.data.user.id
       );
+  
+      setFollowing(isFollowing);
     }
-  }, [id, profileDataQuery.status, profileDataQuery.data]);
+  }, [profileDataQuery.status, profileDataQuery.data, followingQuery.status, followingQuery.data]);
+  
 
   if (!id) return null;
 
@@ -154,12 +157,12 @@ const ProfilePage = () => {
           buttonText: t("buttons.unfollow"),
         });
       } else {
-        followMutation.mutate({ id: profile!.id });
-        setProfile(profileDataQuery.data)
+        setFollowing(true); // ✅ Refleja inmediatamente el cambio en la UI
+        await followMutation.mutateAsync({ id: profile!.id });
       }
-      return await getProfileData();
     }
   };
+  
 
   const getProfileData = async () => {
     if (profileDataQuery.status === 'success') {

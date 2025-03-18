@@ -28,7 +28,7 @@ const FollowUserBox = ({
 
   const followingQuery = useQuery({
     queryKey: ["following"],
-    queryFn: () => service.getFollowing()
+    queryFn: () => service.getFollowing(id)
   })
 
   const followMutation = useMutation({
